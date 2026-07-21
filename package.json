@@ -1,0 +1,12 @@
+{
+  "name": "radar-rider",
+  "version": "2.0.0",
+  "private": true,
+  "description": "PWA de seguranca comunitaria para riders na Irlanda e no Reino Unido.",
+  "scripts": {
+    "test": "node t/check-ids.mjs && node t/smoke.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0"
+  }
+}

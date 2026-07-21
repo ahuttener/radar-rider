@@ -1,0 +1,94 @@
+<!--
+  Radar Rider — e-mail de CONFIRMAÇÃO DE CONTA.
+  Cole este HTML em: Supabase > Authentication > Emails > Confirm signup.
+
+  Variáveis do Supabase usadas aqui:
+    {{ .ConfirmationURL }}  link que confirma a conta
+    {{ .Email }}            e-mail de quem se cadastrou
+
+  A logo é carregada por URL absoluta porque cliente de e-mail não enxerga
+  caminho relativo. Ela precisa estar publicada em www.radarrider.com/icon-512.png
+  ANTES do primeiro cadastro, senão chega um quadrado vazio.
+
+  Layout em <table> com estilo inline de propósito: Gmail e Outlook descartam
+  <style> no topo e não entendem flex nem grid.
+-->
+<div style="background:#050805;padding:28px 0;font-family:Arial,Helvetica,sans-serif">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="600"
+         style="width:600px;max-width:92%;margin:0 auto;background:#0b120d;border:1px solid #1e3325;border-radius:18px;overflow:hidden">
+
+    <tr>
+      <td align="center" style="padding:34px 40px 6px">
+        <a href="https://www.radarrider.com" target="_blank" style="text-decoration:none;border:0">
+          <img src="https://www.radarrider.com/icon-512.png" alt="Radar Rider" width="120"
+               style="width:120px;height:auto;border:0;display:inline-block;border-radius:20px"/>
+        </a>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="padding:14px 44px 0">
+        <h1 style="margin:0;font-size:24px;font-weight:800;color:#F7FBF8">Confirme sua conta</h1>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:14px 46px 4px">
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#a9bdb0;text-align:center">
+          Falta um passo para você entrar no <b style="color:#23F36B">Radar Rider</b> e receber os alertas
+          de segurança que outros riders publicam perto de você.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="padding:26px 46px 6px">
+        <a href="{{ .ConfirmationURL }}" target="_blank"
+           style="display:inline-block;background:#23F36B;color:#03140a;font-size:15px;font-weight:800;
+                  text-decoration:none;padding:15px 34px;border-radius:12px">Confirmar minha conta</a>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:16px 46px 0">
+        <p style="margin:0;font-size:12px;line-height:1.6;color:#7b8f81;text-align:center">
+          Se o botão não funcionar, copie e cole este endereço no navegador:<br>
+          <span style="color:#a9bdb0;word-break:break-all">{{ .ConfirmationURL }}</span>
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:22px 46px 0">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+               style="background:rgba(255,210,26,.07);border:1px solid rgba(255,210,26,.22);border-radius:12px">
+          <tr><td style="padding:13px 16px">
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#e0d194">
+              🛡️ Ao publicar um alerta, nunca descreva pessoas — só o risco e a área.
+              Sua localização é sempre divulgada de forma aproximada.
+            </p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:20px 46px 28px">
+        <p style="margin:0;font-size:11.5px;line-height:1.6;color:#6f8375;text-align:center">
+          Este e-mail foi enviado para {{ .Email }}.<br>
+          Se não foi você que criou a conta, é só ignorar — nada será ativado.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="background:#0f1a12;border-top:1px solid #1e3325;padding:15px 44px">
+        <span style="color:#23F36B;font-size:12.5px;font-weight:800;letter-spacing:.5px">www.radarrider.com</span>
+        <span style="color:#5d6f63;font-size:11px;display:block;margin-top:5px">
+          Em perigo imediato, ligue 999 ou 112. O Radar Rider não substitui os serviços de emergência.
+        </span>
+      </td>
+    </tr>
+
+  </table>
+</div>

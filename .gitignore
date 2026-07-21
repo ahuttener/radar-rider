@@ -2,6 +2,10 @@
 # Copie config.example.js para config.js e preencha no servidor.
 config.js
 
+# Dependencias dos testes (nao vao para o servidor)
+node_modules/
+package-lock.json
+
 # Lixo de sistema
 Thumbs.db
 .DS_Store

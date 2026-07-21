@@ -65,3 +65,83 @@ create trigger on_alert_rate_limit before insert on public.alerts
 alter table public.alerts drop constraint if exists alerts_expiry_window;
 alter table public.alerts add constraint alerts_expiry_window
   check (expires_at > created_at and expires_at <= created_at + interval '24 hours');
+
+-- =========================================================
+-- PATCH 2 — Irlanda + Reino Unido, e faxina automática
+-- =========================================================
+-- NOTA SOBRE PERMISSÃO DE ADMIN
+-- Este projeto NÃO usa uma coluna is_admin. Quem é staff é definido por
+-- profiles.role ('user' | 'moderator' | 'admin') e lido pela função is_staff(),
+-- que é de onde TODAS as políticas de RLS acima tiram a decisão.
+-- Criar um is_admin separado abriria uma segunda fonte de verdade: o painel
+-- acharia que a pessoa é admin e o banco continuaria negando (ou pior, o contrário).
+-- Para promover alguém:
+--   update public.profiles set role='admin' where id=(select id from auth.users where email='SEU_EMAIL');
+
+-- 1) País do alerta, para separar Irlanda e Reino Unido no painel e nas unidades
+alter table public.alerts add column if not exists country_code text not null default 'IE'
+  check (country_code in ('IE','GB'));
+create index if not exists alerts_country_idx on public.alerts(country_code,status,created_at desc);
+
+-- O país vem do app (bounding box das coordenadas). É aproximado de propósito:
+-- serve para agrupar no painel e escolher km/milhas, não para valer como jurisdição.
+grant select (country_code) on public.alerts to anon, authenticated;
+
+-- 2) Faxina: marca como expirado o que já passou do prazo que o AUTOR escolheu.
+-- Deliberadamente NÃO é um prazo fixo de 3 horas: o autor escolhe entre 1h e 12h
+-- na hora de publicar, e o banco já limita o teto em 24h. Derrubar tudo em 3h
+-- apagaria alertas que a pessoa publicou para durar mais.
+create or replace function public.auto_expire_alerts() returns integer
+language plpgsql security definer set search_path=public as $$
+declare affected integer;
+begin
+  update public.alerts set status='expired'
+    where status='active' and expires_at <= now();
+  get diagnostics affected = row_count;
+  return affected;
+end $$;
+
+revoke execute on function public.auto_expire_alerts() from anon, authenticated;
+
+-- Agende no painel do Supabase (Database > Cron) para rodar de 10 em 10 minutos:
+--   select cron.schedule('expirar-alertas','*/10 * * * *',$$select public.auto_expire_alerts()$$);
+-- Mesmo sem o cron o app continua correto: a RLS já esconde alerta com
+-- expires_at vencido. O cron serve para o status no painel bater com a realidade.
+
+-- 2b) Permissão de apagar alerta no painel.
+-- A política de RLS "staff delete alert" já existia, mas sem este grant o
+-- DELETE morria antes dela, com "permission denied for table alerts".
+-- Continua valendo a RLS: quem não é staff segue sem conseguir apagar nada.
+grant delete on public.alerts to authenticated;
+
+-- 3) "Meus alertas", para a aba Histórico do app.
+-- Precisa ser função porque o patch de segurança tirou alerts.user_id da API:
+-- é justamente essa coluna escondida que impede descobrir quem publicou o quê.
+-- Aqui o filtro por autor acontece dentro do banco, sem devolver a coluna.
+create or replace function public.my_alerts()
+returns table(id uuid, category text, description text, is_ongoing boolean,
+              latitude_public double precision, longitude_public double precision,
+              status text, confirmations_count integer,
+              expires_at timestamptz, created_at timestamptz, country_code text)
+language sql stable security definer set search_path=public as $$
+  select a.id, a.category, a.description, a.is_ongoing,
+         a.latitude_public, a.longitude_public, a.status, a.confirmations_count,
+         a.expires_at, a.created_at, a.country_code
+  from public.alerts a
+  where a.user_id = auth.uid()
+  order by a.created_at desc
+  limit 200
+$$;
+revoke execute on function public.my_alerts() from anon;
+
+-- 4) Leitura da lista de usuários pelo painel (só staff, sem expor e-mail de ninguém)
+create or replace function public.staff_user_list()
+returns table(id uuid, display_name text, role text, reputation_score integer,
+              created_at timestamptz, alerts_count bigint)
+language sql stable security definer set search_path=public as $$
+  select p.id, p.display_name, p.role, p.reputation_score, p.created_at,
+         (select count(*) from public.alerts a where a.user_id = p.id)
+  from public.profiles p
+  where public.is_staff()
+  order by p.created_at desc
+$$;

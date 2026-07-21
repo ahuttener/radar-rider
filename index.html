@@ -1,13 +1,314 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Radar Rider — Segurança Comunitária</title><meta name="description" content="Alertas comunitários, segurança e apoio para motociclistas e entregadores."><meta name="theme-color" content="#040705"><meta property="og:title" content="Radar Rider"><meta property="og:description" content="Segurança comunitária para riders."><meta property="og:url" content="https://radarrider.com"><meta property="og:type" content="website"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="styles.css"></head><body>
-<header class="topbar"><div class="brand"><img src="icon-192.png" alt="Radar Rider"><div><strong>RADAR RIDER</strong><small>SEGURANÇA COMUNITÁRIA</small></div></div><div class="top-actions"><button id="installBtn" class="icon-btn hidden">⬇ Instalar</button><button id="emergencyBtn" class="danger-btn">🚨 Emergência</button></div></header>
-<main>
-<section id="screen-map" class="screen active"><div class="map-shell"><div id="map"></div><div class="map-overlay beta">📍 A localização pública dos alertas é aproximada. Não identifique pessoas, veículos ou residências.</div><div class="map-overlay map-actions"><button id="locateBtn" class="secondary">◎ Minha localização</button><button id="newAlertBtn" class="primary">＋ Criar alerta</button></div></div></section>
-<section id="screen-alerts" class="screen"><div class="panel"><h2>Alertas próximos</h2><p class="muted">Alertas ativos compartilhados pela comunidade.</p><div id="alertsList"></div></div></section>
-<section id="screen-report" class="screen"><div class="panel"><h2>Novo alerta</h2><form id="alertForm" class="form-grid"><div class="notice">Não publique fotos, nomes, matrículas, características físicas ou qualquer informação que possa identificar uma pessoa. Descreva somente o risco e a área.</div><label>Tipo de risco<select id="category" required><option value="">Selecione</option><option value="intimidacao">Intimidação ou assédio</option><option value="roubo">Roubo ou tentativa</option><option value="grupo_hostil">Grupo hostil</option><option value="via_perigosa">Via perigosa</option><option value="acidente">Acidente ou bloqueio</option><option value="outro">Outro risco</option></select></label><label>Quando aconteceu?<select id="occurredWhen" required><option value="agora">Agora</option><option value="5_min">Há menos de 5 minutos</option><option value="15_min">Há menos de 15 minutos</option><option value="30_min">Há menos de 30 minutos</option><option value="1_hora">Há menos de 1 hora</option></select></label><label><span><input id="ongoing" type="checkbox" style="width:auto"> Ainda está acontecendo</span></label><label>Descrição segura<textarea id="description" maxlength="500" required placeholder="Ex.: grupo bloqueando a passagem e intimidando riders na área. Não descreva pessoas."></textarea></label><label>Duração do alerta<select id="duration"><option value="60">1 hora</option><option value="180">3 horas</option><option value="360">6 horas</option><option value="720">12 horas</option></select></label><button class="primary full" type="submit">Publicar alerta</button><div id="alertMsg"></div></form></div></section>
-<section id="screen-profile" class="screen"><div class="panel"><div id="profileGuest" class="card"><h2>Entre no Radar Rider</h2><p class="muted">Crie uma conta para publicar, confirmar e denunciar alertas.</p><button id="openAuthBtn" class="primary full">Criar conta ou entrar</button></div><div id="profileUser" class="hidden"><div class="card profile-row"><div style="display:flex;gap:12px;align-items:center"><div class="avatar">🏍️</div><div><h3 id="profileName">Rider</h3><p id="profileEmail" class="muted"></p></div></div><button id="logoutBtn" class="secondary">Sair</button></div><div class="card install-card"><h3>Instalar no celular</h3><p class="muted">No Android use o botão Instalar. No iPhone abra no Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.</p><button id="installProfileBtn" class="primary full">Instalar Radar Rider</button></div><div class="card"><h3>Minha conta</h3><div class="stack"><button id="resetPasswordBtn" class="secondary full">Enviar redefinição de senha</button><button id="deleteAccountBtn" class="danger-btn full">Solicitar exclusão da conta</button><a href="admin.html" id="adminLink" class="secondary full hidden" style="text-align:center;text-decoration:none">Painel de moderação</a></div></div></div></div></section>
-</main>
-<nav class="bottom-nav"><button class="nav-btn active" data-screen="map"><span>🗺️</span>Mapa</button><button class="nav-btn" data-screen="alerts"><span>⚠️</span>Alertas</button><button class="nav-btn" data-screen="report"><span>＋</span>Reportar</button><button class="nav-btn" data-screen="profile"><span>👤</span>Perfil</button></nav>
-<div id="authModal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h3>Acesso</h3><button class="close" data-close="authModal">×</button></div><div class="auth-tabs"><button class="secondary auth-tab active" data-auth="login">Entrar</button><button class="secondary auth-tab" data-auth="signup">Criar conta</button></div><form id="authForm" class="stack"><label id="nameWrap" class="hidden">Nome público<input id="authName" maxlength="40"></label><label>E-mail<input id="authEmail" type="email" required></label><label>Senha<input id="authPassword" type="password" minlength="8" required></label><button class="primary full" type="submit">Continuar</button><button id="forgotBtn" class="secondary full" type="button">Esqueci minha senha</button><div id="authMsg"></div></form></div></div>
-<div id="emergencyModal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h3>🚨 Emergência</h3><button class="close" data-close="emergencyModal">×</button></div><div class="notice">Em perigo imediato na Irlanda, ligue para 999 ou 112. O Radar Rider não substitui os serviços de emergência.</div><div class="emergency-grid" style="margin-top:12px"><a class="danger-btn" href="tel:999" style="text-align:center;text-decoration:none">Ligar 999</a><a class="danger-btn" href="tel:112" style="text-align:center;text-decoration:none">Ligar 112</a></div><div class="stack" style="margin-top:10px"><button id="shareWhatsAppBtn" class="primary full">Compartilhar localização no WhatsApp</button><button id="copyLocationBtn" class="secondary full">Copiar localização</button><a class="secondary full" href="https://www.garda.ie/en/contact-us/station-directory/" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Encontrar Garda Station</a></div><div id="emergencyMsg"></div></div></div>
-<div id="reportModal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h3>Denunciar alerta</h3><button class="close" data-close="reportModal">×</button></div><form id="reportForm" class="stack"><input id="reportedAlertId" type="hidden"><label>Motivo<select id="reportReason"><option value="identificacao">Identifica uma pessoa</option><option value="falso">Informação falsa</option><option value="odio">Ódio, ameaça ou assédio</option><option value="privacidade">Violação de privacidade</option><option value="outro">Outro</option></select></label><label>Detalhes opcionais<textarea id="reportDetails" maxlength="300"></textarea></label><button class="danger-btn full" type="submit">Enviar para moderação</button><div id="reportMsg"></div></form></div></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Radar Rider — Segurança Comunitária para Riders</title>
+<meta name="description" content="Alertas de segurança em tempo real, feitos pela comunidade de motociclistas e entregadores na Irlanda e no Reino Unido.">
+<meta name="theme-color" content="#040705">
+<meta property="og:title" content="Radar Rider">
+<meta property="og:description" content="Segurança comunitária para riders na Irlanda e no Reino Unido.">
+<meta property="og:url" content="https://www.radarrider.com">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.radarrider.com/icon-512.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="splash">
+  <img src="icon-512.png" alt="Radar Rider">
+  <p>DENUNCIE · INFORME · <b>PROTEJA</b></p>
+</div>
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="icon-192.png" alt="">
+      <div>
+        <h1>RADAR <span>RIDER</span></h1>
+        <small>SEGURANÇA COMUNITÁRIA</small>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="installBtn" class="ghost-pill hidden">⬇ Instalar</button>
+      <button id="emergencyBtn" class="sos">🚨 Emergência</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===================== MAPA ===================== -->
+    <section id="screen-map" class="screen active">
+      <div class="map-wrap">
+        <div id="map"></div>
+
+        <div class="map-top">
+          <div class="privacy-strip">📍 A posição dos alertas é aproximada. Não identifique pessoas, veículos ou casas.</div>
+          <button id="heatBtn" class="chip-toggle" title="Mapa de calor">🔥</button>
+        </div>
+
+        <div class="summary">
+          <div class="row">
+            <h3>Situação agora</h3>
+            <small>ao vivo</small>
+          </div>
+          <div class="stats">
+            <div class="stat green"><b id="statTotal">0</b><span>Alertas ativos</span></div>
+            <div class="stat red"><b id="statAlta">0</b><span>Risco alto</span></div>
+            <div class="stat amber"><b id="statLive">0</b><span>Acontecendo</span></div>
+          </div>
+          <button id="locateBtn" class="btn ghost" style="margin-top:10px">◎ Minha localização</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ALERTAS ===================== -->
+    <section id="screen-alerts" class="screen">
+      <div class="pad">
+        <h2 class="title">Alertas</h2>
+        <div class="tabs">
+          <div class="tab on" data-tab="ativos">Ativos</div>
+          <div class="tab" data-tab="hist">Meu histórico</div>
+        </div>
+        <div id="alertsList"></div>
+      </div>
+    </section>
+
+    <!-- ===================== DETALHE ===================== -->
+    <section id="screen-detail" class="screen">
+      <div class="pad" id="detailBody"></div>
+    </section>
+
+    <!-- ===================== REPORTAR ===================== -->
+    <section id="screen-report" class="screen">
+      <div class="pad">
+        <h2 class="title">Reportar ocorrência</h2>
+
+        <div class="steps">
+          <div class="stepdot on" id="sd1">1</div><div class="stepline"></div>
+          <div class="stepdot" id="sd2">2</div><div class="stepline"></div>
+          <div class="stepdot" id="sd3">3</div>
+        </div>
+
+        <!-- passo 1: tipo -->
+        <div id="rstep1">
+          <label class="lbl">Tipo de ocorrência</label>
+          <div class="type-opt" data-cat="roubo">🚨 Roubo ou tentativa</div>
+          <div class="type-opt" data-cat="grupo_hostil">👥 Grupo hostil</div>
+          <div class="type-opt" data-cat="intimidacao">⚠️ Intimidação ou assédio</div>
+          <div class="type-opt" data-cat="acidente">⛔ Acidente ou bloqueio</div>
+          <div class="type-opt" data-cat="via_perigosa">🛣️ Via perigosa</div>
+          <div class="type-opt" data-cat="outro">📍 Outro risco</div>
+          <button class="btn primary" id="next1" disabled style="margin-top:10px">Próximo</button>
+        </div>
+
+        <!-- passo 2: contexto -->
+        <div id="rstep2" style="display:none">
+          <label class="lbl">Local</label>
+          <div class="card loc-card">📍 <div id="stepLocation"><b>Sua localização atual</b><p>Publicada como área aproximada</p></div></div>
+
+          <label class="lbl">O que aconteceu</label>
+          <textarea id="rdesc" maxlength="500" placeholder="Descreva só o risco e a área. Ex.: grupo bloqueando a passagem e intimidando riders."></textarea>
+
+          <div class="privacy-box" style="margin-top:12px">
+            <span>🛡️</span>
+            <p><b>Proteja a privacidade.</b> Não escreva nomes, idade, aparência, nacionalidade, placa ou endereço. Descreva o comportamento, nunca a pessoa.</p>
+          </div>
+
+          <label class="lbl">Quando aconteceu</label>
+          <select id="roccurred">
+            <option value="agora">Agora</option>
+            <option value="5_min">Há menos de 5 minutos</option>
+            <option value="15_min">Há menos de 15 minutos</option>
+            <option value="30_min">Há menos de 30 minutos</option>
+            <option value="1_hora">Há menos de 1 hora</option>
+          </select>
+
+          <label class="lbl">Quanto tempo o alerta fica no ar</label>
+          <select id="rduration">
+            <option value="60">1 hora</option>
+            <option value="180" selected>3 horas</option>
+            <option value="360">6 horas</option>
+            <option value="720">12 horas</option>
+          </select>
+
+          <label class="switch-line"><input id="rongoing" type="checkbox"> Ainda está acontecendo</label>
+
+          <div class="row-btns">
+            <button class="btn ghost" id="back2">Voltar</button>
+            <button class="btn primary" id="next2">Próximo</button>
+          </div>
+        </div>
+
+        <!-- passo 3: confirmação -->
+        <div id="rstep3" style="display:none">
+          <label class="lbl">Confirme antes de publicar</label>
+          <div class="card">
+            <h4 id="cfType"></h4>
+            <p class="muted" id="cfDesc"></p>
+            <p class="muted" style="margin-top:10px">📍 Sua área aproximada</p>
+            <p id="cfWhen" style="color:var(--amber);font-size:12px;margin-top:6px"></p>
+          </div>
+          <div class="privacy-box ok">
+            <span>🛡️</span>
+            <p>Seu alerta é <b>anônimo</b> para os outros riders. Alerta falso derruba sua reputação e pode suspender a conta.</p>
+          </div>
+          <div class="row-btns">
+            <button class="btn ghost" id="back3">Voltar</button>
+            <button class="btn primary" id="publishBtn">🚀 Publicar alerta</button>
+          </div>
+          <div id="alertMsg"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PERFIL ===================== -->
+    <section id="screen-profile" class="screen">
+      <div class="pad">
+
+        <div id="profileGuest" class="card">
+          <h2 class="title">Entre no Radar Rider</h2>
+          <p class="muted">Crie uma conta para publicar, confirmar e denunciar alertas. Seu nome nunca aparece junto do alerta.</p>
+          <button id="openAuthBtn" class="btn primary" style="margin-top:14px">Criar conta ou entrar</button>
+        </div>
+
+        <div id="profileUser" class="hidden">
+          <div class="prof-head">
+            <div class="prof-av">🏍️</div>
+            <div>
+              <h3 id="profileName">Rider</h3>
+              <p class="muted" id="profileEmail"></p>
+            </div>
+            <button id="logoutBtn" class="ghost-pill">Sair</button>
+          </div>
+
+          <div class="card">
+            <span class="mini-label">Reputação</span>
+            <div class="rep-grid" style="margin-top:10px">
+              <div class="stat"><b id="repScore">0</b><span>Pontos</span></div>
+              <div class="stat"><b id="repAlerts">0</b><span>Alertas</span></div>
+              <div class="stat"><b id="repSince">—</b><span>Desde</span></div>
+            </div>
+            <div class="rep-bar"><i id="repBar" style="width:0%"></i></div>
+            <p class="rep-expl">Você ganha um ponto cada vez que confirma um alerta de outro rider perto de você. Confirmar ajuda a comunidade a separar o que é real do que é boato.</p>
+          </div>
+
+          <div class="card install-card">
+            <h3>Instalar no celular</h3>
+            <p class="muted">Instale o Radar Rider como app e ele abre em tela cheia, sem a barra do navegador.</p>
+            <button id="installProfileBtn" class="btn primary" style="margin-top:12px">Instalar Radar Rider</button>
+          </div>
+
+          <div class="card">
+            <h3>Minha conta</h3>
+            <div class="stack" style="margin-top:10px">
+              <button id="resetPasswordBtn" class="btn ghost">Enviar redefinição de senha</button>
+              <a href="admin.html" id="adminLink" class="btn ghost hidden">Painel de moderação</a>
+              <button id="deleteAccountBtn" class="danger-link">Solicitar exclusão da conta</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn on" data-screen="map"><span class="ic">🗺️</span>Mapa</button>
+    <button class="nav-btn" data-screen="alerts"><span class="ic">⚠️</span>Alertas</button>
+    <button class="nav-btn fab" data-screen="report"><span class="ic">＋</span></button>
+    <button class="nav-btn" data-screen="profile"><span class="ic">👤</span>Perfil</button>
+  </nav>
+
+  <div id="toast"></div>
+</div>
+
+<!-- ===================== MODAIS ===================== -->
+
+<div id="authModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Acesso</h3><button class="close" data-close="authModal">×</button></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth="login">Entrar</button>
+      <button class="auth-tab" data-auth="signup">Criar conta</button>
+    </div>
+    <form id="authForm" class="stack">
+      <label id="nameWrap" class="hidden">Nome público<input id="authName" maxlength="40" placeholder="Como os outros riders vão te ver"></label>
+      <label>E-mail<input id="authEmail" type="email" autocomplete="email" required></label>
+      <label>Senha<input id="authPassword" type="password" minlength="8" autocomplete="current-password" required></label>
+      <button class="btn primary" type="submit">Continuar</button>
+      <button id="forgotBtn" class="btn ghost" type="button">Esqueci minha senha</button>
+      <div id="authMsg"></div>
+    </form>
+  </div>
+</div>
+
+<div id="recoveryModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Criar nova senha</h3></div>
+    <p class="muted" style="font-size:13px">Você chegou aqui pelo link do e-mail. Escolha uma senha nova para a sua conta.</p>
+    <form id="recoveryForm" class="stack" style="margin-top:12px">
+      <label>Nova senha<input id="newPassword" type="password" minlength="8" autocomplete="new-password" required></label>
+      <label>Repita a nova senha<input id="newPasswordConfirm" type="password" minlength="8" autocomplete="new-password" required></label>
+      <button class="btn primary" type="submit">Salvar nova senha</button>
+      <div id="newPassMsg"></div>
+    </form>
+  </div>
+</div>
+
+<div id="emergencyModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><h3>🚨 Emergência</h3><button class="close" data-close="emergencyModal">×</button></div>
+    <div class="privacy-box"><span>⚠️</span><p>Em perigo imediato, ligue <b>999</b> ou <b>112</b>. O Radar Rider não substitui a polícia nem o serviço de emergência.</p></div>
+    <div class="emergency-grid">
+      <a class="btn danger" href="tel:999">Ligar 999</a>
+      <a class="btn danger" href="tel:112">Ligar 112</a>
+    </div>
+    <div class="stack" style="margin-top:10px">
+      <button id="shareWhatsAppBtn" class="btn primary">Mandar minha localização no WhatsApp</button>
+      <button id="copyLocationBtn" class="btn ghost">Copiar minha localização</button>
+      <a class="btn ghost" href="https://www.garda.ie/en/contact-us/station-directory/" target="_blank" rel="noopener">Achar uma Garda Station</a>
+    </div>
+    <div id="emergencyMsg"></div>
+  </div>
+</div>
+
+<div id="reportModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Denunciar alerta</h3><button class="close" data-close="reportModal">×</button></div>
+    <form id="reportForm" class="stack">
+      <input id="reportedAlertId" type="hidden">
+      <label>Motivo<select id="reportReason">
+        <option value="identificacao">Identifica uma pessoa</option>
+        <option value="falso">Informação falsa</option>
+        <option value="odio">Ódio, ameaça ou assédio</option>
+        <option value="privacidade">Violação de privacidade</option>
+        <option value="outro">Outro</option>
+      </select></label>
+      <label>Detalhes (opcional)<textarea id="reportDetails" maxlength="300"></textarea></label>
+      <button class="btn danger" type="submit">Enviar para moderação</button>
+      <div id="reportMsg"></div>
+    </form>
+  </div>
+</div>
+
+<div id="installModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Instalar o app</h3><button class="close" data-close="installModal">×</button></div>
+    <p class="muted" id="installHelp" style="font-size:14px;line-height:1.6"></p>
+    <button class="btn ghost" data-close="installModal" style="margin-top:14px">Entendi</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
