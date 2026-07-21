@@ -9,6 +9,7 @@ import {
   type AlertaPublico, type CategoryId,
 } from '@/lib/display';
 import { distanceMetres, CONFIRM_RADIUS_M } from '@/lib/geo';
+import { useInstalacao, ModalInstalar, RegistrarServiceWorker } from './InstalarApp';
 
 // O mapa só existe no navegador: o Leaflet mexe em window ao ser importado.
 const MapView = dynamic(() => import('./MapView'), {
@@ -33,6 +34,7 @@ export default function RadarApp() {
   const [detalhe, setDetalhe] = useState<string | null>(null);
   const [foco, setFoco] = useState<{ lat: number; lng: number } | null>(null);
   const [modal, setModal] = useState<'emergencia' | 'denuncia' | 'instalar' | null>(null);
+  const { prompt: promptInstalar, instalado } = useInstalacao();
   const [toast, setToast] = useState<{ texto: string; erro?: boolean } | null>(null);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -164,6 +166,8 @@ export default function RadarApp() {
 
   return (
     <>
+      <RegistrarServiceWorker />
+
       {splash && (
         <div id="splash">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -183,6 +187,9 @@ export default function RadarApp() {
             </div>
           </div>
           <div className="top-actions">
+            {!instalado && (
+              <button className="ghost-pill" onClick={() => setModal('instalar')}>⬇ Instalar</button>
+            )}
             <button className="sos" onClick={() => setModal('emergencia')}>🚨 Emergência</button>
           </div>
         </header>
@@ -345,6 +352,22 @@ export default function RadarApp() {
                   </div>
                 </>
               )}
+
+              {/* Fora do bloco de login de propósito: quem ainda não tem conta
+                  também precisa conseguir instalar o app. */}
+              {!instalado && (
+                <div className="card install-card">
+                  <h3>📲 Instalar no celular</h3>
+                  <p className="muted">
+                    Coloque o Radar Rider na tela inicial, com a logo. Ele abre em
+                    tela cheia, sem a barra do navegador, e fica igual a um app.
+                  </p>
+                  <button className="btn primary" style={{ marginTop: 12 }}
+                          onClick={() => setModal('instalar')}>
+                    Instalar Radar Rider
+                  </button>
+                </div>
+              )}
             </div>
           </section>
         </main>
@@ -389,6 +412,10 @@ export default function RadarApp() {
                href="https://www.garda.ie/en/contact-us/station-directory/">Achar uma Garda Station</a>
           </div>
         </Modal>
+      )}
+
+      {modal === 'instalar' && (
+        <ModalInstalar prompt={promptInstalar} aoFechar={() => setModal(null)} />
       )}
 
       {modal === 'denuncia' && alertaAberto && (
