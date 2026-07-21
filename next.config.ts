@@ -8,6 +8,13 @@ const nextConfig: NextConfig = {
   // passa a resolver arquivo do lugar errado.
   turbopack: { root: __dirname },
 
+  // A hospedagem compartilhada limita quantas threads o processo pode criar.
+  // O Next dimensiona os workers pela CPU da máquina inteira — 17 no servidor
+  // da Hostinger — e a compilação morria com "OS can't spawn worker thread:
+  // Resource temporarily unavailable (os error 11)", deixando um .next pela
+  // metade, sem BUILD_ID. Com um worker só, a compilação conclui.
+  experimental: { cpus: 1, workerThreads: false },
+
   async headers() {
     return [
       {
