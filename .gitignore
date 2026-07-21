@@ -1,10 +1,16 @@
-# Chaves reais do Supabase — nunca versionar.
-# Copie config.example.js para config.js e preencha no servidor.
-config.js
+# Segredos: senha do banco, do SMTP e a chave de sessao.
+.env
+.env.local
+.env*.local
 
-# Dependencias dos testes (nao vao para o servidor)
+# Build e dependencias
 node_modules/
-package-lock.json
+.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# package-lock.json FICA versionado: a Hostinger roda `npm ci` na compilacao,
+# e `npm ci` falha sem o lockfile.
 
 # Lixo de sistema
 Thumbs.db

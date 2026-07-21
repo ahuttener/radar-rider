@@ -1,0 +1,186 @@
+// Radar Rider — modelo de dados.
+//
+// Portado do supabase.sql. O Postgres protegia a privacidade com RLS e grants
+// por coluna; aqui não existe RLS, então a MESMA proteção passa a ser
+// responsabilidade do servidor: nenhuma rota pode devolver latitudePrivate,
+// longitudePrivate ou userId de um alerta para quem não é staff.
+// Isso está centralizado em src/lib/alert-visibility.ts — não montar resposta
+// de alerta à mão em rota nenhuma.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  moderator
+  admin
+}
+
+enum AlertCategory {
+  intimidacao
+  roubo
+  grupo_hostil
+  via_perigosa
+  acidente
+  outro
+}
+
+enum AlertStatus {
+  active
+  hidden
+  removed
+  expired
+}
+
+enum CountryCode {
+  IE
+  GB
+}
+
+enum ReportReason {
+  identificacao
+  falso
+  odio
+  privacidade
+  outro
+}
+
+enum ReportStatus {
+  open
+  reviewing
+  resolved
+  dismissed
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  displayName     String    @db.VarChar(40)
+  role            Role      @default(user)
+  reputationScore Int       @default(0)
+  emailVerifiedAt DateTime?
+  // Exclusão de conta é marcada, não apagada na hora: os alertas precisam
+  // continuar existindo para quem já confiou neles na rua.
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  alerts             Alert[]
+  confirmations      AlertConfirmation[]
+  reportsMade        AlertReport[]             @relation("ReportAuthor")
+  moderationActions  ModerationAction[]
+  deletionRequests   AccountDeletionRequest[]
+  emailTokens        EmailToken[]
+
+  @@index([deletedAt])
+}
+
+// Um único modelo para confirmar e-mail e para redefinir senha: o ciclo de vida
+// é idêntico (token de uso único, com prazo) e separar em duas tabelas só
+// duplicaria a lógica de expiração.
+model EmailToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // "verify_email" ou "reset_password"
+  purpose   String    @db.VarChar(20)
+  // Guarda o hash do token, nunca o token em si: vazamento do banco não pode
+  // entregar links de redefinição de senha válidos.
+  tokenHash String    @unique @db.VarChar(64)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
+}
+
+model Alert {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    AlertCategory
+  description String        @db.VarChar(500)
+  occurredAt  DateTime
+  isOngoing   Boolean       @default(false)
+
+  // Posição real. NUNCA sai numa resposta pública — só para moderação.
+  latitudePrivate  Float
+  longitudePrivate Float
+  // Posição arredondada para ~100 m, que é a que o app mostra.
+  latitudePublic   Float
+  longitudePublic  Float
+
+  status             AlertStatus @default(active)
+  countryCode        CountryCode @default(IE)
+  confirmationsCount Int         @default(0)
+  expiresAt          DateTime
+  createdAt          DateTime    @default(now())
+
+  confirmations     AlertConfirmation[]
+  reports           AlertReport[]
+  moderationActions ModerationAction[]
+
+  @@index([status, expiresAt])
+  @@index([countryCode, status, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AlertConfirmation {
+  id             String   @id @default(cuid())
+  alertId        String
+  alert          Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Distância de quem confirmou até o alerta. O servidor recusa acima de 2 km:
+  // confirmação de longe não é testemunho.
+  distanceMetres Int
+  createdAt      DateTime @default(now())
+
+  @@unique([alertId, userId])
+}
+
+model AlertReport {
+  id         String       @id @default(cuid())
+  alertId    String
+  alert      Alert        @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  reportedBy String
+  author     User         @relation("ReportAuthor", fields: [reportedBy], references: [id], onDelete: Cascade)
+  reason     ReportReason
+  details    String?      @db.VarChar(300)
+  status     ReportStatus @default(open)
+  createdAt  DateTime     @default(now())
+
+  @@unique([alertId, reportedBy])
+  @@index([status, createdAt])
+}
+
+model ModerationAction {
+  id          String   @id @default(cuid())
+  alertId     String?
+  alert       Alert?   @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  moderatorId String
+  moderator   User     @relation(fields: [moderatorId], references: [id])
+  action      String   @db.VarChar(40)
+  notes       String?  @db.VarChar(500)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model AccountDeletionRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  status    String   @default("open") @db.VarChar(20)
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}

@@ -1,12 +1,37 @@
 {
   "name": "radar-rider",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "PWA de seguranca comunitaria para riders na Irlanda e no Reino Unido.",
+  "description": "Radar Rider - seguranca comunitaria para riders na Irlanda e no Reino Unido.",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "node t/check-ids.mjs && node t/smoke.mjs"
+    "dev": "next dev",
+    "build": "prisma generate && prisma migrate deploy && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --test t/*.test.mjs",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
+    "leaflet": "^1.9.4",
+    "next": "^16.2.11",
+    "next-auth": "^4.24.15",
+    "nodemailer": "^7.0.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "jsdom": "^26.0.0"
+    "@types/leaflet": "^1.9.12",
+    "@types/node": "^22.10.2",
+    "@types/nodemailer": "^6.4.17",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "prisma": "^6.19.3",
+    "typescript": "^5.7.2"
   }
 }
