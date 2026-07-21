@@ -1,7 +1,7 @@
 # Radar Rider
 
-PWA de segurança comunitária para motociclistas e entregadores na Irlanda e no
-Reino Unido. Um rider publica um alerta de risco; quem está perto vê no mapa e
+PWA de segurança comunitária para entregadores na Irlanda e no Reino Unido.
+Um entregador publica um alerta de risco; quem está perto vê no mapa e
 confirma. A localização é sempre divulgada de forma aproximada.
 
 Sem framework e sem build: são arquivos estáticos + Supabase. Publicar é copiar
