@@ -36,6 +36,9 @@ export async function POST(req: Request) {
     where: { id: userId },
     data: {
       passwordHash: await bcrypt.hash(dados.data.password, 12),
+      // Derruba as sessões que já estavam abertas. Quem pede para redefinir a
+      // senha normalmente quer justamente expulsar alguém.
+      passwordChangedAt: new Date(),
       // Quem redefine a senha pelo e-mail provou que é dono da caixa. Se a
       // conta ainda não estava confirmada, confirma agora — senão a pessoa
       // troca a senha e continua sem conseguir entrar.

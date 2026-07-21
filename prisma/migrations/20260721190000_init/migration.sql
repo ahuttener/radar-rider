@@ -7,6 +7,7 @@ CREATE TABLE `User` (
     `role` ENUM('user', 'moderator', 'admin') NOT NULL DEFAULT 'user',
     `reputationScore` INTEGER NOT NULL DEFAULT 0,
     `emailVerifiedAt` DATETIME(3) NULL,
+    `passwordChangedAt` DATETIME(3) NULL,
     `deletedAt` DATETIME(3) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 

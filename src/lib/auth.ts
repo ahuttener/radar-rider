@@ -14,6 +14,14 @@ declare module 'next-auth' {
   }
 }
 
+// Hash descartável para quando o e-mail não existe. É GERADO pelo bcrypt, e não
+// escrito à mão: um literal com o tamanho errado faz o bcrypt recusar o formato
+// e devolver false na hora, sem rodar a derivação — o que destrói justamente a
+// proteção que ele existe para dar. Medido: literal inválido = 0 ms, hash real
+// = 220 ms. Essa diferença entrega, numa única tentativa, quem tem conta aqui.
+const CUSTO_BCRYPT = 12;
+const HASH_DESCARTAVEL = bcrypt.hashSync('conta-inexistente', CUSTO_BCRYPT);
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: '/entrar' },
@@ -32,10 +40,10 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({ where: { email } });
 
-        // Compara mesmo sem usuário, contra um hash descartável. Sem isso, a
-        // resposta volta na hora para e-mail inexistente e demora para e-mail
-        // existente — dá para descobrir quem tem conta cronometrando.
-        const hash = user?.passwordHash ?? '$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvaliduu';
+        // Compara mesmo sem usuário. Sem isso, a resposta volta na hora para
+        // e-mail inexistente e demora para e-mail existente — dá para descobrir
+        // quem tem conta cronometrando.
+        const hash = user?.passwordHash ?? HASH_DESCARTAVEL;
         const confere = await bcrypt.compare(password, hash);
 
         if (!user || !confere) return null;
@@ -60,9 +68,15 @@ export const authOptions: NextAuthOptions = {
       if (trigger === 'update' || (token.uid && !user)) {
         const atual = await prisma.user.findUnique({
           where: { id: token.uid as string },
-          select: { role: true, displayName: true, deletedAt: true },
+          select: { role: true, displayName: true, deletedAt: true, passwordChangedAt: true },
         });
         if (!atual || atual.deletedAt) return {};
+
+        // Token emitido antes da última troca de senha morre aqui. É o que faz
+        // "redefinir a senha" realmente expulsar quem já estava logado.
+        const emitidoEm = typeof token.iat === 'number' ? token.iat * 1000 : 0;
+        if (atual.passwordChangedAt && emitidoEm < atual.passwordChangedAt.getTime()) return {};
+
         token.role = atual.role;
         token.name = atual.displayName;
       }

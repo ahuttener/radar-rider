@@ -161,7 +161,6 @@ export default function RadarApp() {
   }
 
   const nome = session?.user?.name ?? 'Rider';
-  const ehStaff = session?.user?.role === 'admin' || session?.user?.role === 'moderator';
 
   return (
     <>
@@ -339,7 +338,9 @@ export default function RadarApp() {
                     <h3>Minha conta</h3>
                     <div className="stack" style={{ marginTop: 10 }}>
                       <Link className="btn ghost" href="/esqueci-a-senha">Trocar minha senha</Link>
-                      {ehStaff && <Link className="btn ghost" href="/moderacao">Painel de moderação</Link>}
+                      {/* O painel de moderação ainda não foi portado para esta versão.
+                          O link só volta quando a página existir — botão que leva a
+                          404 é pior do que botão que não está lá. */}
                     </div>
                   </div>
                 </>

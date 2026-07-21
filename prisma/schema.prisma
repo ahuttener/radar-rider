@@ -66,6 +66,11 @@ model User {
   role            Role      @default(user)
   reputationScore Int       @default(0)
   emailVerifiedAt DateTime?
+  // Momento da última troca de senha. A sessão é JWT e não há tabela de sessão
+  // para apagar, então é isto que derruba token antigo: quem redefine a senha
+  // espera expulsar quem estava logado, e sem esta coluna o invasor
+  // continuaria dentro por até 30 dias.
+  passwordChangedAt DateTime?
   // Exclusão de conta é marcada, não apagada na hora: os alertas precisam
   // continuar existindo para quem já confiou neles na rua.
   deletedAt       DateTime?
