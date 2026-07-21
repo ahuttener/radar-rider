@@ -1,0 +1,8 @@
+# Chaves reais do Supabase — nunca versionar.
+# Copie config.example.js para config.js e preencha no servidor.
+config.js
+
+# Lixo de sistema
+Thumbs.db
+.DS_Store
+*.zip
