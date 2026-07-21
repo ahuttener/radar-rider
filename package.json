@@ -4,6 +4,7 @@
   "private": true,
   "description": "PWA de seguranca comunitaria para riders na Irlanda e no Reino Unido.",
   "scripts": {
+    "build": "node -e \"console.log('Site estatico: nao ha nada para compilar.')\"",
     "test": "node t/check-ids.mjs && node t/smoke.mjs"
   },
   "devDependencies": {

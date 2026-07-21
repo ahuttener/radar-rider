@@ -2,9 +2,11 @@
 # Copie config.example.js para config.js e preencha no servidor.
 config.js
 
-# Dependencias dos testes (nao vao para o servidor)
+# Dependencias dos testes
 node_modules/
-package-lock.json
+
+# package-lock.json FICA versionado de proposito: a Hostinger roda `npm ci` na
+# compilacao, e `npm ci` falha sem o lockfile.
 
 # Lixo de sistema
 Thumbs.db
