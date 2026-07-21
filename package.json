@@ -11,7 +11,7 @@
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test t/*.test.mjs",
+    "test": "node --experimental-strip-types --test t/*.test.mjs",
     "db:studio": "prisma studio"
   },
   "dependencies": {
