@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
@@ -39,16 +40,26 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   // Uma denúncia por pessoa por alerta (índice único). Repetir o envio devolve
   // sucesso em vez de erro: para quem denuncia, o resultado é o mesmo, e
   // diferenciar só entregaria se aquele alerta já foi denunciado antes.
-  await prisma.alertReport
-    .create({
+  try {
+    await prisma.alertReport.create({
       data: {
         alertId: id,
         reportedBy: session.user.id,
         reason: dados.data.reason,
         details: dados.data.details || null,
       },
-    })
-    .catch(() => null);
+    });
+  } catch (erro) {
+    // Repetir uma denúncia é idempotente; qualquer outra falha precisa ser
+    // informada. Dizer “enviada” quando o banco caiu perderia uma denúncia.
+    if (!(erro instanceof Prisma.PrismaClientKnownRequestError && erro.code === 'P2002')) {
+      console.error('Falha ao registrar denúncia:', erro);
+      return NextResponse.json(
+        { erro: 'Não foi possível registrar a denúncia agora. Tente novamente.' },
+        { status: 503 },
+      );
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

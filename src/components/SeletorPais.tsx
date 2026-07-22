@@ -87,7 +87,10 @@ export function usePais(pos: { lat: number; lng: number } | null) {
   // app já vendo o Reino Unido, sem precisar tocar em nada.
   useEffect(() => {
     if (manual || !pos) return;
-    setPais(countryFromCoords(pos.lat, pos.lng));
+    const detectado = countryFromCoords(pos.lat, pos.lng);
+    // Fora da região atendida, mantém “Todos” em vez de rotular o usuário
+    // como Irlanda por padrão.
+    if (detectado) setPais(detectado);
   }, [pos, manual]);
 
   const escolher = useCallback((novo: FiltroPais) => {

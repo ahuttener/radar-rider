@@ -72,8 +72,14 @@ export function ModalInstalar({ prompt, aoFechar }: {
     <div className="modal show" onClick={(e) => { if (e.target === e.currentTarget) aoFechar(); }}>
       <div className="modal-card">
         <div className="modal-head">
-          <h3>Instalar no celular</h3>
-          <button className="close" onClick={aoFechar}>×</button>
+          <h3>Adicionar à tela inicial</h3>
+          <button className="close" aria-label="Fechar" onClick={aoFechar}>×</button>
+        </div>
+
+        <div className="install-preview">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icon-192.png" alt="Ícone do Radar Rider" />
+          <div><b>Radar Rider</b><span>Este é o ícone que ficará no celular</span></div>
         </div>
 
         <p className="muted" style={{ fontSize: 14, lineHeight: 1.6 }}>

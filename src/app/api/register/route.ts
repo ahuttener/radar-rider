@@ -11,6 +11,8 @@ const schema = z.object({
   email: z.string().email().max(200),
   password: z.string().min(8).max(200),
   displayName: z.string().trim().min(2).max(40),
+  isAdult: z.literal(true),
+  acceptedTerms: z.literal(true),
 });
 
 export async function POST(req: Request) {
@@ -30,11 +32,15 @@ export async function POST(req: Request) {
   }
 
   const email = dados.data.email.trim().toLowerCase();
-  const jaExiste = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  const jaExiste = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, emailVerifiedAt: true, deletedAt: true },
+  });
 
   // Resposta idêntica exista ou não a conta. Dizer "e-mail já cadastrado"
   // transforma o formulário num verificador de quem tem conta no app —
   // e aqui isso revela quem é rider e usa alerta de segurança.
+  let userId: string | null = null;
   if (!jaExiste) {
     const user = await prisma.user.create({
       data: {
@@ -44,7 +50,15 @@ export async function POST(req: Request) {
       },
     });
 
-    const token = await criarToken(user.id, 'verify_email');
+    userId = user.id;
+  } else if (!jaExiste.emailVerifiedAt && !jaExiste.deletedAt) {
+    // Um cadastro interrompido pode pedir outro link sem revelar se a conta
+    // existe. O token novo invalida o anterior.
+    userId = jaExiste.id;
+  }
+
+  if (userId) {
+    const token = await criarToken(userId, 'verify_email');
     const site = process.env.NEXTAUTH_URL || 'https://www.radarrider.com';
     await enviarConfirmacaoDeConta(email, `${site}/confirmar?token=${token}`);
   }

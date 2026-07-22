@@ -21,7 +21,10 @@ export default function MapView({ alerts, me, heat, onPick, focus }: Props) {
   const markers = useRef<Map<string, Marker>>(new Map());
   const heatLayer = useRef<Layer | null>(null);
   const onPickRef = useRef(onPick);
-  onPickRef.current = onPick;
+
+  useEffect(() => {
+    onPickRef.current = onPick;
+  }, [onPick]);
 
   useEffect(() => {
     if (!el.current || map.current) return;

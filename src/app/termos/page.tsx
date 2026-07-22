@@ -34,7 +34,7 @@ export default function Termos() {
 
       <h3>2. Sua conta</h3>
       <ul>
-        <li>Você precisa ter 16 anos ou mais.</li>
+        <li>Você precisa ter 18 anos ou mais.</li>
         <li>Use um e-mail de verdade, que seja seu — é por ele que recuperamos sua senha.</li>
         <li>A senha é sua responsabilidade. Não empreste a conta.</li>
         <li>Seu nome público nunca aparece junto de um alerta.</li>
@@ -102,6 +102,14 @@ export default function Termos() {
         mudanças relevantes são avisadas dentro do app. Estes termos são regidos
         pela lei da Irlanda, sem prejuízo dos direitos de consumidor que você
         tenha no país onde mora.
+      </p>
+
+      <h3>9. Regras complementares</h3>
+      <p>
+        A <a href="/comunidade">Política da Comunidade</a>, a{' '}
+        <a href="/seguranca">Orientação de Segurança</a> e a{' '}
+        <a href="/moderacao-e-denuncias">Política de Moderação</a> fazem parte
+        destas regras. Em caso de conflito, estes Termos prevalecem.
       </p>
     </PaginaLegal>
   );

@@ -5,6 +5,7 @@
 
 # Build e dependencias
 node_modules/
+.npm-cache/
 .next/
 next-env.d.ts
 *.tsbuildinfo

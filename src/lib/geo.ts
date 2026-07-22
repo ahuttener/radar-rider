@@ -27,11 +27,11 @@ function insidePolygon(lng: number, lat: number, poly: Array<[number, number]>):
   return inside;
 }
 
-export function countryFromCoords(lat: number, lng: number): CountryCode {
+export function countryFromCoords(lat: number, lng: number): CountryCode | null {
   if (insidePolygon(lng, lat, NI_OUTLINE)) return 'GB';                        // Irlanda do Norte
   if (lat >= 51.3 && lat <= 55.5 && lng >= -10.7 && lng <= -5.3) return 'IE';  // ilha da Irlanda
   if (lat >= 49.8 && lat <= 60.9 && lng >= -8.2 && lng <= 1.8) return 'GB';    // Grã-Bretanha
-  return 'IE';
+  return null;
 }
 
 // Arredondar para 3 casas move o ponto para uma área de ~100 m. É o que impede

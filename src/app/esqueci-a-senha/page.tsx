@@ -18,6 +18,7 @@ export default function EsqueciASenha() {
         body: JSON.stringify({ email }),
       });
       const j = await r.json();
+      if (!r.ok) throw new Error('Serviço indisponível');
       setMsg(j.mensagem ?? 'Se existir uma conta com esse e-mail, o link chegou nele.');
     } catch {
       setMsg('Falha de conexão. Tente de novo daqui a pouco.');

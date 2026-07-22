@@ -17,7 +17,7 @@ confirma. A localização é sempre divulgada de forma aproximada.
 | Caminho | O que é |
 |---|---|
 | `src/app/` | rotas: páginas e `api/` |
-| `src/components/` | `RadarApp` (o app), mapa, modais, seletor de país |
+| `src/components/` | `RadarApp` (o app), mapa, modais, seletor de país e documentos legais |
 | `src/lib/` | `alert-visibility` (privacidade), `geo`, `auth`, `mailer`, `prisma` |
 | `prisma/` | schema e migrações |
 | `public/` | manifesto, service worker e ícones do PWA |
@@ -49,19 +49,24 @@ O `npm run build` roda `prisma migrate deploy` antes e exige banco de verdade.
 ## Testar
 
 ```bash
-npm test
+npm run check
 ```
 
-`t/geo.test.mjs` cobre a separação Irlanda/Reino Unido por coordenada, o borrão
+O comando roda testes, ESLint e TypeScript. `t/geo.test.mjs` cobre a separação Irlanda/Reino Unido por coordenada, o borrão
 de posição e o cálculo de distância. `t/auth-timing.test.mjs` cobre o hash
 descartável do login — a proteção contra descobrir quem tem conta medindo o
-tempo da resposta.
+tempo da resposta. `t/alert-visibility.test.mjs` garante que autor e coordenada
+exata não saem na resposta pública.
 
 ## Publicar
 
 Variáveis de ambiente no hPanel (**Sites → radarrider.com → Variáveis de
 ambiente**), conforme `.env.example`, e **reiniciar a aplicação** — variável
 nova só existe no processo seguinte.
+
+Antes de abrir ao público, configure `LEGAL_CONTROLLER_NAME` e
+`LEGAL_CONTROLLER_ADDRESS` com o nome civil e o endereço postal do responsável.
+O botão de apoio usa `NEXT_PUBLIC_SUPPORT_URL`.
 
 Ao mexer em `public/service-worker.js`, **suba o número do cache**
 (`radar-rider-vX`). Sem isso, quem já instalou continua com os arquivos velhos.
@@ -110,9 +115,13 @@ Ao mexer em `public/service-worker.js`, **suba o número do cache**
 Coisas que a versão estática tinha e **não foram portadas** — não são bugs, são
 lacunas conhecidas:
 
-- **Painel de moderação.** Havia um `admin.html`. Hoje não há rota de admin
-  nenhuma, e o link para ele foi tirado do perfil de propósito: botão que leva a
-  404 é pior que botão ausente.
-- **Exclusão de conta pelo app.** Hoje é pedido por e-mail, à mão.
-- **Faxina automática dos alertas vencidos.** O alerta some do mapa porque a
-  consulta filtra por `expiresAt`, mas a linha continua no banco. Não há cron.
+- **Upload de imagens e foto de perfil.** O produto atual é propositalmente só
+  texto e localização aproximada.
+- **Notificações push.** O PWA instala no celular, mas ainda não envia push.
+- **Analytics e anúncios.** Não são carregados; se entrarem, exigem novo fluxo
+  de consentimento e atualização das políticas.
+
+O painel de moderação fica em `/moderacao` para contas `moderator` ou `admin`.
+Exportação e exclusão ficam em “Perfil → Meus dados e direitos”. A rotina de
+retenção apaga registros vencidos oportunisticamente, no máximo uma vez por dia
+por processo.

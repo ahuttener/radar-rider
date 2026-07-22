@@ -16,6 +16,8 @@ export default function Entrar() {
   const [senha, setSenha] = useState('');
   const [verSenha, setVerSenha] = useState(false);
   const [nome, setNome] = useState('');
+  const [maior18, setMaior18] = useState(false);
+  const [aceitouTermos, setAceitouTermos] = useState(false);
   const [msg, setMsg] = useState<{ texto: string; ok?: boolean } | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -46,7 +48,13 @@ export default function Entrar() {
         const r = await fetch('/api/register', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ email, password: senha, displayName: nome }),
+          body: JSON.stringify({
+            email,
+            password: senha,
+            displayName: nome,
+            isAdult: maior18,
+            acceptedTerms: aceitouTermos,
+          }),
         });
         const j = await r.json();
         if (!r.ok) return setMsg({ texto: j.erro ?? 'Não foi possível criar a conta.' });
@@ -182,6 +190,22 @@ export default function Entrar() {
                 {verSenha ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
+
+            {modo === 'criar' && (
+              <div className="auth-checks">
+                <label>
+                  <input type="checkbox" required checked={maior18}
+                         onChange={(e) => setMaior18(e.target.checked)} />
+                  Confirmo que tenho 18 anos ou mais.
+                </label>
+                <label>
+                  <input type="checkbox" required checked={aceitouTermos}
+                         onChange={(e) => setAceitouTermos(e.target.checked)} />
+                  Li e aceito os <Link href="/termos">Termos de Uso</Link> e a{' '}
+                  <Link href="/privacidade">Política de Privacidade</Link>.
+                </label>
+              </div>
+            )}
 
             {modo === 'login' && (
               <Link className="auth-forgot" href="/esqueci-a-senha">Esqueci minha senha</Link>

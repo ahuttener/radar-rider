@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { distanceMetres, isValidCoord, CONFIRM_RADIUS_M } from '@/lib/geo';
@@ -76,9 +77,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         data: { reputationScore: { increment: 1 } },
       }),
     ]);
-  } catch {
-    // O índice único (alertId, userId) é o que impede confirmar duas vezes.
-    return NextResponse.json({ erro: 'Você já confirmou este alerta.' }, { status: 409 });
+  } catch (erro) {
+    // Só P2002 significa duplicidade. Banco indisponível não pode ser
+    // apresentado como se a confirmação já tivesse sido salva.
+    if (erro instanceof Prisma.PrismaClientKnownRequestError && erro.code === 'P2002') {
+      return NextResponse.json({ erro: 'Você já confirmou este alerta.' }, { status: 409 });
+    }
+    console.error('Falha ao confirmar alerta:', erro);
+    return NextResponse.json(
+      { erro: 'Não foi possível salvar a confirmação agora. Tente novamente.' },
+      { status: 503 },
+    );
   }
 
   return NextResponse.json({ ok: true });

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { PaginaLegal } from '@/components/PaginaLegal';
+import { legalIdentity, PRIVACY_EMAIL } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Política de Privacidade — Radar Rider',
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function Privacidade() {
+  const identity = legalIdentity();
   return (
     <PaginaLegal titulo="Política de Privacidade" atualizadoEm="22 de julho de 2026">
       <div className="privacy-box">
@@ -20,17 +22,24 @@ export default function Privacidade() {
 
       <h3>Quem é responsável</h3>
       <p>
-        O Radar Rider opera este site e é o responsável pelo tratamento dos seus
-        dados (<i>data controller</i>, no RGPD). Fale conosco por{' '}
-        <a href="mailto:contato@radarrider.com">contato@radarrider.com</a> para
-        qualquer assunto desta política.
+        <b>{identity.name}</b>, estabelecido em {identity.address}, opera o Radar
+        Rider como pessoa física e é o controlador dos dados. Para privacidade,
+        escreva para <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.
       </p>
+      {identity.incomplete && (
+        <div className="privacy-box">
+          <span>⚠️</span><p>
+            <b>Versão de pré-lançamento:</b> o nome civil e o endereço postal do
+            controlador ainda precisam ser configurados antes do lançamento comercial.
+          </p>
+        </div>
+      )}
 
       <h3>Que dados coletamos</h3>
       <ul>
         <li>
           <b>Sua conta:</b> nome público, e-mail e sua senha guardada de forma
-          cifrada (nem nós conseguimos lê-la).
+          irreversível por hash (nem nós conseguimos lê-la).
         </li>
         <li>
           <b>Seus alertas:</b> categoria, descrição, quando aconteceu e a
@@ -45,7 +54,16 @@ export default function Privacidade() {
           <b>Confirmações e denúncias</b> que você faz sobre alertas de outras
           pessoas.
         </li>
+        <li>
+          <b>Dados técnicos:</b> endereço IP, navegador, aparelho e registros de
+          erro ou segurança podem aparecer nos logs do provedor de hospedagem.
+        </li>
       </ul>
+      <p>
+        Hoje não coletamos foto de perfil, imagens enviadas, lista de contatos,
+        token de notificação push, dados de publicidade nem analytics. Se isso
+        mudar, esta política e as escolhas de consentimento serão atualizadas antes.
+      </p>
 
       <h3>O que acontece com a localização</h3>
       <p>
@@ -106,18 +124,36 @@ export default function Privacidade() {
         Também podemos entregar dados a autoridades quando formos legalmente
         obrigados a isso.
       </p>
+      <p>
+        O acesso interno é limitado ao operador e a moderadores autorizados,
+        apenas quando necessário para suporte, segurança, moderação ou cumprimento
+        de obrigação legal. Prestadores só tratam dados para executar o serviço.
+      </p>
+
+      <h3>Transferências internacionais</h3>
+      <p>
+        Alguns fornecedores de mapas ou infraestrutura podem tratar dados fora
+        do Espaço Econômico Europeu. Quando aplicável, usamos as salvaguardas
+        contratuais exigidas pelo RGPD e avaliamos o fornecedor antes do uso.
+      </p>
 
       <h3>Por quanto tempo guardamos</h3>
       <ul>
         <li>
-          <b>Alertas:</b> somem do mapa quando expiram — entre 1 e 12 horas,
-          conforme quem publicou escolheu. O registro continua guardado para
-          moderação e para o seu histórico.
+          <b>Alertas, confirmações e denúncias:</b> o alerta sai do mapa após 1 a
+          12 horas e os registros são apagados em até 12 meses.
         </li>
         <li>
-          <b>Conta:</b> enquanto ela existir. Se você pedir a exclusão, apagamos
-          a conta e desvinculamos os alertas.
+          <b>Conta:</b> enquanto ela existir. Na exclusão, removemos imediatamente
+          os identificadores diretos e mantemos somente registros anonimizados
+          necessários durante seus prazos de retenção.
         </li>
+        <li>
+          <b>Buy Me a Coffee:</b> somente se você tocar em “Apoiar”. O link abre
+          o site externo, sujeito à política de privacidade própria dele.
+        </li>
+        <li><b>Tokens de e-mail:</b> até 30 dias depois de usados ou expirados.</li>
+        <li><b>Ações de moderação:</b> até 12 meses.</li>
       </ul>
 
       <h3>Seus direitos</h3>
@@ -126,7 +162,8 @@ export default function Privacidade() {
         pedir: acesso aos seus dados, correção, exclusão, portabilidade,
         limitação do uso e oposição ao tratamento. Basta escrever para{' '}
         <a href="mailto:contato@radarrider.com">contato@radarrider.com</a> —
-        respondemos em até 30 dias.
+        normalmente respondemos em até um mês. Você também pode usar a página{' '}
+        <a href="/rgpd">Seus direitos no RGPD</a>.
       </p>
       <p>
         Se você achar que tratamos seus dados de forma errada, pode reclamar à
@@ -141,8 +178,16 @@ export default function Privacidade() {
 
       <h3>Idade mínima</h3>
       <p>
-        O Radar Rider é para maiores de 16 anos. Não criamos contas para crianças
-        de forma consciente.
+        O Radar Rider é somente para maiores de 18 anos. Não permitimos contas
+        de crianças ou adolescentes e removemos contas identificadas como tal.
+      </p>
+
+      <h3>Decisões automatizadas e obrigação de fornecer dados</h3>
+      <p>
+        Não tomamos decisões com efeito jurídico exclusivamente por algoritmo.
+        E-mail, nome público e senha são necessários para criar conta; GPS é
+        opcional para consultar o mapa, mas necessário para publicar ou confirmar
+        um alerta. Você pode negar a permissão do GPS no aparelho.
       </p>
 
       <h3>Mudanças nesta política</h3>

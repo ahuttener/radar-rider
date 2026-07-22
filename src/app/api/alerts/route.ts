@@ -3,13 +3,15 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import { publicAlertSelect, toPublicAlerts } from '@/lib/alert-visibility';
+import { publicAlertSelect, toPublicAlert, toPublicAlerts } from '@/lib/alert-visibility';
 import { countryFromCoords, publicCoord, isValidCoord } from '@/lib/geo';
+import { executarRetencaoSeNecessario } from '@/lib/retention';
 
 export const dynamic = 'force-dynamic';
 
 /** Lista os alertas ativos da comunidade. Aberto, sem precisar de conta. */
 export async function GET() {
+  await executarRetencaoSeNecessario();
   const alerts = await prisma.alert.findMany({
     where: { status: 'active', expiresAt: { gt: new Date() } },
     select: publicAlertSelect,
@@ -58,6 +60,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ erro: 'Localização inválida.' }, { status: 400 });
   }
 
+  const countryCode = countryFromCoords(latitude, longitude);
+  if (!countryCode) {
+    return NextResponse.json(
+      { erro: 'O Radar Rider aceita alertas apenas na Irlanda e no Reino Unido.' },
+      { status: 400 },
+    );
+  }
+
   // Limite de 3 alertas por 10 minutos. Sem isso, uma conta sozinha enche o
   // mapa de alerta falso e o app vira ferramenta de pânico.
   const recentes = await prisma.alert.count({
@@ -85,11 +95,13 @@ export async function POST(req: Request) {
       // para publicar um alerta apontando para a casa de alguém.
       latitudePublic: publicCoord(latitude),
       longitudePublic: publicCoord(longitude),
-      countryCode: countryFromCoords(latitude, longitude),
+      countryCode,
       expiresAt: new Date(agora + dados.data.durationMinutes * 60_000),
     },
     select: publicAlertSelect,
   });
 
-  return NextResponse.json({ alert: alerta }, { status: 201 });
+  // O select já exclui os campos privados; a conversão é a segunda barreira
+  // contra uma alteração futura da consulta que inclua coordenadas exatas.
+  return NextResponse.json({ alert: toPublicAlert(alerta) }, { status: 201 });
 }
