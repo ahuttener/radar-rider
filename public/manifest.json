@@ -1,7 +1,7 @@
 {
-  "name": "Radar Rider",
+  "name": "Radar Rider — Segurança para Riders",
   "short_name": "Radar Rider",
-  "description": "Segurança comunitária para entregadores.",
+  "description": "Segurança comunitária para entregadores na Irlanda e no Reino Unido.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -10,8 +10,10 @@
   "background_color": "#040705",
   "theme_color": "#040705",
   "orientation": "portrait-primary",
+  "categories": ["navigation", "social", "utilities"],
   "icons": [
-    {"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"/icon-512-maskable.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
   ]
 }

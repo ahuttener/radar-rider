@@ -280,13 +280,260 @@ textarea{min-height:96px;resize:vertical;font-family:inherit}
 .modal-head h3{font-size:17px}
 .close{border:0;background:none;color:var(--muted);font-size:26px;line-height:1}
 .modal label{display:grid;gap:6px;font-size:12px;font-weight:800;color:#ccdad0}
-.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.auth-tab{
-  border-radius:12px;padding:11px;font-size:13px;font-weight:800;
+/* ===== tela de entrada: apresentação + login ===== */
+.auth-shell{min-height:100dvh;display:grid;grid-template-columns:1.15fr .85fr}
+
+.auth-hero{
+  position:relative;overflow:hidden;
+  padding:34px clamp(26px,6vw,90px) 42px;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.auth-hero>*{position:relative;z-index:2}
+/* Círculos do radar, decorativos. z-index 1 e sem eventos: não podem roubar o
+   clique de nada e não têm o que anunciar para leitor de tela. */
+.auth-radar{
+  position:absolute;z-index:1;pointer-events:none;
+  width:700px;height:700px;border-radius:50%;right:-330px;bottom:-270px;
+  border:1px solid rgba(35,243,107,.14);box-shadow:inset 0 0 150px rgba(35,243,107,.05);
+}
+.auth-radar:before,.auth-radar:after{
+  content:"";position:absolute;border-radius:50%;border:1px solid rgba(35,243,107,.12);
+}
+.auth-radar:before{inset:18%}
+.auth-radar:after{inset:36%}
+
+.auth-top{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.auth-brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit}
+.auth-brand img{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 0 18px rgba(35,243,107,.3))}
+.auth-brand h1{margin:0;font-size:22px;line-height:1;font-weight:900;letter-spacing:1.7px;font-style:italic}
+.auth-brand h1 span{color:var(--amber)}
+.auth-brand small{display:block;margin-top:6px;color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:800}
+
+.auth-country{
+  display:flex;gap:6px;padding:5px;border-radius:999px;flex:0 0 auto;
+  background:rgba(10,17,12,.82);border:1px solid var(--line);backdrop-filter:blur(14px);
+}
+.auth-country button{
+  display:flex;align-items:center;gap:7px;border:0;background:transparent;
+  color:var(--muted);padding:9px 13px;border-radius:999px;font-weight:800;font-size:12px;
+}
+.auth-country button.active{background:var(--green);color:#03140a}
+.auth-country .flag{width:18px;height:13px;flex:0 0 auto;border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.22)}
+
+.auth-copy{max-width:720px;margin:70px 0 60px}
+.auth-eyebrow{
+  display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;
+  color:var(--green);border:1px solid rgba(35,243,107,.25);background:rgba(35,243,107,.06);
+  font-weight:800;font-size:12px;letter-spacing:.7px;
+}
+.auth-copy h2{
+  font-size:clamp(42px,6.4vw,82px);line-height:.98;letter-spacing:-3px;
+  margin:24px 0 22px;max-width:850px;font-weight:800;
+}
+.auth-copy h2 span{color:var(--green)}
+.auth-copy>p{font-size:clamp(16px,1.8vw,21px);line-height:1.6;color:#c4d1c8;max-width:670px;margin:0}
+.auth-points{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.auth-point{
+  padding:10px 13px;border-radius:12px;background:rgba(255,255,255,.035);
+  border:1px solid var(--line);font-size:12px;color:#dce6df;
+}
+
+.auth-legal{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+.auth-legal a{text-decoration:none;color:var(--muted)}
+.auth-legal a:hover{color:var(--green)}
+
+.auth-side{
+  display:flex;align-items:center;justify-content:center;padding:30px;
+  background:linear-gradient(180deg,rgba(5,9,6,.46),rgba(2,4,3,.82));
+  border-left:1px solid rgba(255,255,255,.05);
+}
+.auth-card{
+  width:min(100%,460px);padding:28px;border-radius:28px;
+  background:linear-gradient(145deg,rgba(18,31,22,.96),rgba(8,14,10,.96));
+  border:1px solid var(--line);box-shadow:var(--shadow);
+}
+.auth-mini-logo{display:none;text-align:center;margin-bottom:20px}
+.auth-mini-logo img{width:82px}
+.auth-card h3{font-size:28px;margin:0 0 8px}
+.auth-sub{margin:0 0 24px;color:var(--muted);font-size:14px;line-height:1.5}
+
+.auth-tabs{
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:6px;
+  background:#0a120d;border-radius:14px;margin-bottom:20px;
+}
+.auth-tabs button{border:0;background:transparent;color:var(--muted);padding:11px;border-radius:10px;font-weight:800}
+.auth-tabs button.on{background:var(--green);color:#03140a}
+
+.auth-card label{display:block;font-size:12px;font-weight:800;color:#cbd6ce;margin:13px 0 7px}
+.auth-card input{
+  width:100%;height:52px;border-radius:15px;border:1px solid var(--line);
+  background:#09110c;color:#fff;padding:0 14px;
+}
+.auth-card input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(35,243,107,.08)}
+
+.auth-pass{position:relative}
+.auth-pass input{padding-right:86px}
+.auth-pass button{
+  position:absolute;right:8px;top:7px;height:38px;padding:0 10px;
+  border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:800;
+}
+.auth-forgot{display:block;text-align:right;margin-top:9px;color:var(--green);text-decoration:none;font-size:12px;font-weight:800}
+
+.auth-submit{
+  width:100%;height:54px;margin-top:20px;border:0;border-radius:16px;
+  background:linear-gradient(135deg,#2cf678,#15c956);color:#03140a;font-weight:900;font-size:15px;
+  box-shadow:0 14px 34px rgba(35,243,107,.2);
+}
+.auth-submit:disabled{opacity:.5;box-shadow:none;cursor:default}
+
+.auth-notice{
+  margin-top:18px;padding:12px;border-radius:14px;
+  background:rgba(255,210,26,.07);border:1px solid rgba(255,210,26,.17);
+  font-size:11px;line-height:1.55;color:#d9d3ad;
+}
+.auth-notice a{color:var(--amber);font-weight:800}
+.auth-contact{text-align:center;margin-top:18px;color:var(--muted);font-size:12px}
+.auth-contact b{color:#fff}
+.auth-install{text-align:center;margin-top:15px}
+.auth-install button{
+  border:1px solid var(--line);background:transparent;color:#d9e3dc;
+  padding:10px 14px;border-radius:12px;font-size:12px;font-weight:800;
+}
+/* Só existe no celular, onde os links da apresentação são escondidos. */
+.auth-legal-mobile{display:none;justify-content:center;gap:16px;margin-top:18px}
+.auth-legal-mobile a{color:var(--muted);text-decoration:none;font-size:11px;font-weight:800}
+
+@media(max-width:900px){
+  .auth-shell{grid-template-columns:1fr}
+  .auth-hero{min-height:auto;padding:24px 18px 30px}
+  .auth-copy{text-align:center;margin:44px auto 28px}
+  .auth-copy h2{font-size:48px;letter-spacing:-2px}
+  .auth-points{justify-content:center}
+  .auth-legal{display:none}
+  .auth-legal-mobile{display:flex}
+  .auth-side{padding:16px 16px 38px;border-left:0}
+}
+@media(max-width:560px){
+  .auth-shell{display:block}
+  .auth-hero{padding-bottom:18px}
+  .auth-top{justify-content:center}
+  .auth-brand h1,.auth-brand small{display:none}
+  .auth-brand img{width:96px;height:96px}
+  .auth-country{position:absolute;top:0;right:0}
+  .auth-country button{padding:8px 10px;font-size:11px}
+  .auth-copy{margin:24px 0 12px}
+  .auth-eyebrow{font-size:10px}
+  .auth-copy h2{font-size:38px;line-height:1.02;margin:17px 0}
+  .auth-copy>p{font-size:15px}
+  .auth-points{display:none}
+  .auth-radar{width:430px;height:430px;right:-250px;bottom:-230px}
+  .auth-side{padding-top:4px}
+  .auth-card{padding:22px 18px;border-radius:24px}
+  .auth-card h3{text-align:center;font-size:24px}
+  .auth-sub{text-align:center}
+}
+.emergency-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+
+/* ===== filtro de país ===== */
+.pais-bar{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  padding:10px 14px 2px;
+}
+.pais-chip{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  border-radius:12px;padding:9px 6px;font-size:12px;font-weight:800;
   background:var(--panel2);border:1px solid var(--line);color:var(--muted);
 }
-.auth-tab.active{background:var(--green);color:#03140a;border-color:var(--green)}
-.emergency-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.pais-chip .flag{
+  width:20px;height:14px;flex:0 0 auto;border-radius:2px;
+  /* Bandeira clara em fundo escuro some sem a borda; a da Irlanda tem branco. */
+  box-shadow:0 0 0 1px rgba(255,255,255,.22);
+}
+/* O globo de "Todos" é traço, não bandeira: sem moldura, e segue a cor do texto. */
+.pais-chip:first-child .flag{box-shadow:none;border-radius:0}
+.pais-chip .n{
+  font-size:10px;font-weight:800;padding:1px 6px;border-radius:99px;
+  background:rgba(255,255,255,.08);color:var(--muted);
+}
+.pais-chip.on{background:var(--green);color:#03140a;border-color:var(--green)}
+.pais-chip.on .n{background:rgba(0,0,0,.22);color:#03140a}
+
+/* ===== aviso de cookies ===== */
+.cookie-bar{
+  position:fixed;z-index:900;left:0;right:0;
+  /* Acima da barra de navegação, senão o aviso cobre os botões do app. */
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  max-width:520px;margin:0 auto;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:13px 15px;border-radius:16px;
+  background:var(--panel);border:1px solid var(--line);
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);
+  animation:cookieIn .35s ease;
+}
+@keyframes cookieIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.cookie-bar p{flex:1 1 220px;font-size:12px;line-height:1.55;color:var(--muted)}
+.cookie-bar b{color:var(--text)}
+.cookie-bar a{color:var(--green);font-weight:800}
+.cookie-bar .btn{flex:0 0 auto;width:auto;padding:10px 20px;font-size:13px}
+@media(max-width:559px){.cookie-bar{left:10px;right:10px}}
+
+/* ===== páginas legais ===== */
+.legal{line-height:1.68;font-size:14px}
+.legal-date{font-size:12px;color:var(--muted);margin:-8px 0 20px}
+.legal h3{
+  font-size:15px;margin:26px 0 8px;color:var(--green);
+  padding-top:16px;border-top:1px solid var(--line);
+}
+.legal h3:first-of-type{border-top:0;padding-top:0}
+.legal p{margin-bottom:12px;color:var(--muted)}
+.legal b{color:var(--text)}
+.legal a{color:var(--green)}
+.legal ul{margin:0 0 14px;padding-left:20px;color:var(--muted)}
+.legal li{margin-bottom:8px}
+.legal code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+  background:var(--panel2);padding:2px 6px;border-radius:6px;color:var(--text);
+  /* Nome de cookie é longo e não tem espaço: sem isto, estoura a tela no celular. */
+  word-break:break-all;
+}
+.legal .privacy-box{margin-bottom:20px}
+.legal-table{
+  width:100%;border-collapse:collapse;margin:0 0 16px;font-size:12px;
+  /* A tabela de cookies não cabe em tela estreita; rola dentro de si mesma. */
+  display:block;overflow-x:auto;
+}
+.legal-table th,.legal-table td{
+  border:1px solid var(--line);padding:8px 10px;text-align:left;
+  vertical-align:top;min-width:88px;color:var(--muted);
+}
+/* Nome de cookie não se parte: "next-aut h.session- token" em três linhas é
+   ilegível. A tabela rola de lado, então há para onde ele crescer. */
+.legal-table code{word-break:normal;white-space:nowrap}
+.legal-table td:first-child{min-width:172px}
+.legal-table th{background:var(--panel2);color:var(--text);font-weight:800;white-space:nowrap}
+.legal-nav{
+  display:flex;flex-wrap:wrap;gap:14px;margin-top:28px;
+  padding-top:16px;border-top:1px solid var(--line);
+}
+.legal-nav a{font-size:12px;font-weight:800;color:var(--green);text-decoration:none}
+
+/* Linha de status do compartilhamento de localização na emergência. */
+.location-status{
+  font-size:12px;line-height:1.55;text-align:center;color:var(--muted);
+  margin:-2px 0 2px;min-height:34px;
+}
+.location-status.indo{color:var(--green)}
+.location-status.erro{color:var(--red)}
+
+.consent-note{font-size:11px;line-height:1.6;color:var(--muted);text-align:center}
+.consent-note a{color:var(--green);font-weight:800}
+
+/* ===== rodapé ===== */
+.rodape{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);text-align:center}
+.rodape nav{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-bottom:12px}
+.rodape nav a{font-size:12px;font-weight:800;color:var(--green);text-decoration:none}
+.rodape p{font-size:11px;line-height:1.6;color:var(--muted)}
+.rodape a{color:var(--muted)}
 
 /* ===== desktop ===== */
 @media(min-width:560px){

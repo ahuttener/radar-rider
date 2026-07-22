@@ -4,90 +4,115 @@ PWA de segurança comunitária para entregadores na Irlanda e no Reino Unido.
 Um entregador publica um alerta de risco; quem está perto vê no mapa e
 confirma. A localização é sempre divulgada de forma aproximada.
 
-Sem framework e sem build: são arquivos estáticos + Supabase. Publicar é copiar
-a pasta para o `public_html`.
+**Next.js 16 (App Router) + Prisma + MySQL + NextAuth.** Tem build.
 
-## Arquivos
+> Até meados de 2026 isto era um site estático + Supabase, e este README
+> descrevia aquilo: `index.html`, `config.js`, `supabase.sql`, RLS, funções de
+> banco. Nada disso existe mais. Se você encontrar instrução mencionando
+> Supabase em algum canto do repositório, ela é resíduo — o banco é MySQL e
+> quem aplica as regras de acesso é o servidor, não o banco.
 
-| Arquivo | O que é |
+## Estrutura
+
+| Caminho | O que é |
 |---|---|
-| `index.html` · `app.js` · `styles.css` | o app |
-| `admin.html` | painel de moderação (denúncias, alertas por país, usuários) |
-| `supabase.sql` | banco inteiro: tabelas, RLS, funções e os dois patches de segurança |
-| `manifest.json` · `service-worker.js` · `icon-*.png` | o que faz virar app instalável |
-| `config.example.js` | modelo das chaves; vire `config.js` no servidor |
-| `emails/` | templates de e-mail e como ligar o SMTP |
+| `src/app/` | rotas: páginas e `api/` |
+| `src/components/` | `RadarApp` (o app), mapa, modais, seletor de país |
+| `src/lib/` | `alert-visibility` (privacidade), `geo`, `auth`, `mailer`, `prisma` |
+| `prisma/` | schema e migrações |
+| `public/` | manifesto, service worker e ícones do PWA |
+| `emails/` | como ligar o SMTP + pré-visualização dos e-mails |
+| `app.js` | ponto de entrada na Hostinger — ela inicia por arquivo, não por comando |
 | `t/` | testes (`npm test`) |
 
-**Não sobem para o servidor:** `t/`, `package.json`, `node_modules/`, `emails/`.
+## Rodar local
 
-## Publicar do zero
+```bash
+npm install
+cp .env.example .env    # e preencha
+npx prisma migrate dev
+npm run dev
+```
 
-1. Crie um projeto no [Supabase](https://supabase.com).
-2. No **SQL Editor**, cole e execute o `supabase.sql` inteiro, de uma vez.
-3. Em **Project Settings → API**, copie a *Project URL* e a *Publishable key*.
-   Nunca use a `service_role`.
-4. Copie `config.example.js` para `config.js` e preencha os dois valores.
-5. Em **Authentication → URL Configuration**:
-   - Site URL: `https://www.radarrider.com`
-   - Redirect URLs: `https://www.radarrider.com/**`
-6. Configure o SMTP e os templates de e-mail seguindo
-   [`emails/COMO-CONFIGURAR.md`](emails/COMO-CONFIGURAR.md).
-7. Suba os arquivos para o `public_html` da Hostinger.
-8. Confirme que o site abre em **HTTPS** — sem isso o GPS e a instalação do PWA
-   não funcionam.
-9. Faça o seu cadastro no site.
-10. Vire admin, rodando no SQL Editor com o seu e-mail:
-    ```sql
-    update public.profiles set role='admin'
-    where id=(select id from auth.users where email='SEU_EMAIL');
-    ```
-11. Em **Database → Cron**, agende a faxina dos alertas vencidos:
-    ```sql
-    select cron.schedule('expirar-alertas','*/10 * * * *',$$select public.auto_expire_alerts()$$);
-    ```
+Só o `DATABASE_URL` e o `NEXTAUTH_SECRET` são obrigatórios para subir. Sem SMTP
+o app **não quebra**: ele deixa de mandar e-mail e escreve o link de confirmação
+no console, o que dá para testar o cadastro inteiro sem caixa de e-mail.
 
-## Publicar uma alteração
+Para compilar sem banco nenhum (útil em CI ou para conferir tipos):
 
-1. `npm test` — tem que passar tudo.
-2. Suba o número do cache em `service-worker.js` (`radar-rider-vX.Y.Z`).
-   **Se esquecer, quem já instalou continua com a versão velha.**
-3. Copie os arquivos alterados para o `public_html`.
+```bash
+DATABASE_URL="mysql://u:p@127.0.0.1:3306/db" NEXTAUTH_SECRET="x" npx next build
+```
+
+O `npm run build` roda `prisma migrate deploy` antes e exige banco de verdade.
 
 ## Testar
 
 ```bash
-npm install   # só na primeira vez
 npm test
 ```
 
-`t/check-ids.mjs` confere que todo id usado no JS existe no HTML.
-`t/smoke.mjs` sobe o app num DOM de mentira e testa navegação, fluxo de
-reportar, modais e a detecção de país pelas coordenadas.
+`t/geo.test.mjs` cobre a separação Irlanda/Reino Unido por coordenada, o borrão
+de posição e o cálculo de distância. `t/auth-timing.test.mjs` cobre o hash
+descartável do login — a proteção contra descobrir quem tem conta medindo o
+tempo da resposta.
+
+## Publicar
+
+Variáveis de ambiente no hPanel (**Sites → radarrider.com → Variáveis de
+ambiente**), conforme `.env.example`, e **reiniciar a aplicação** — variável
+nova só existe no processo seguinte.
+
+Ao mexer em `public/service-worker.js`, **suba o número do cache**
+(`radar-rider-vX`). Sem isso, quem já instalou continua com os arquivos velhos.
+
+### Armadilhas desta hospedagem
+
+- **`DATABASE_URL` usa `127.0.0.1`, nunca `localhost`.** Com `localhost` o
+  driver tenta socket unix em vez de TCP e falha sem dizer o porquê.
+- **`experimental.cpus: 1` no `next.config.ts` é obrigatório** para a compilação
+  caber nos limites do plano.
+- **`app.js` na raiz** é como a Hostinger inicia a aplicação. Não remover.
 
 ## Decisões que parecem estranhas e são de propósito
 
-- **A coordenada exata nunca sai pela API.** O banco só entrega
-  `latitude_public`/`longitude_public`, arredondadas para ~100 m. A posição real
-  fica gravada e só é acessível por função auditável, para moderação.
-- **`alerts.user_id` também não sai pela API.** É o que mantém o alerta anônimo.
-  Por isso "meus alertas" vem da função `my_alerts()` e não de um filtro no
+- **A coordenada exata nunca sai numa resposta HTTP.** Toda rota que devolve
+  alerta passa por `src/lib/alert-visibility.ts`. No Supabase quem garantia isso
+  era a RLS; aqui o Prisma devolve tudo que a linha tem, então a regra virou do
+  servidor e mora naquele arquivo. **Não monte objeto de alerta à mão numa rota.**
+- **O borrão de posição é feito no servidor, não no cliente.** Se viesse pronto
+  do navegador, daria para adulterar o app e publicar um alerta apontando para a
+  porta da casa de alguém.
+- **O `userId` não sai junto do alerta.** É o que mantém o alerta anônimo; por
+  isso "meus alertas" tem rota própria (`/api/alerts/mine`) e não é um filtro no
   cliente.
-- **Quem é staff é `profiles.role`, não uma coluna `is_admin`.** Toda a RLS lê
-  `is_staff()`. Uma segunda coluna criaria duas fontes de verdade discordando.
-- **Ocultar um alerta é melhor que apagar.** Ocultar tira do app, mantém o
-  registro e é reversível. Apagar leva as confirmações junto.
-- **O prazo de expiração é o que o autor escolheu** (1h a 12h, teto de 24h no
-  banco), não um prazo fixo para todos.
+- **Confirmar exige estar perto** (2 km). De longe não é testemunho, é opinião.
+- **O prazo de expiração é o que o autor escolheu** (1 h a 12 h), não um prazo
+  fixo para todos.
+- **O aviso de cookies não tem botão "recusar".** O app só usa cookie de sessão
+  do login, que pela ePrivacy não depende de consentimento. Botão que não
+  desliga nada é teatro. Se entrar analytics um dia, aí vira opt-in de verdade.
+- **As bandeiras são SVG, não emoji.** O Windows não tem fonte de bandeira e os
+  botões apareciam escritos "IE" e "GB" em letra crua.
 - **Sem verificação de identidade.** O produto não pede documento de ninguém.
 
 ## Limites conhecidos
 
 - O país (IE/GB) vem de uma caixa de coordenadas com um contorno aproximado da
-  Irlanda do Norte. Serve para agrupar no painel e escolher km/milhas —
-  não vale como jurisdição.
-- Os tiles do mapa são do CARTO (tema escuro) sobre dados do OpenStreetMap, na
-  camada pública gratuita. Para volume de verdade, contrate um plano — a
-  atribuição no rodapé do mapa é obrigatória e não pode ser removida.
-- Excluir a conta abre uma solicitação; a remoção final em `auth.users` é feita
-  à mão pelo painel do Supabase.
+  Irlanda do Norte. Serve para agrupar e escolher km/milhas — não vale como
+  jurisdição.
+- Os tiles do mapa são do CARTO sobre dados do OpenStreetMap, na camada pública
+  gratuita. Para volume de verdade, contrate um plano — a atribuição no rodapé
+  do mapa é obrigatória e não pode ser removida.
+
+## O que ainda não existe
+
+Coisas que a versão estática tinha e **não foram portadas** — não são bugs, são
+lacunas conhecidas:
+
+- **Painel de moderação.** Havia um `admin.html`. Hoje não há rota de admin
+  nenhuma, e o link para ele foi tirado do perfil de propósito: botão que leva a
+  404 é pior que botão ausente.
+- **Exclusão de conta pelo app.** Hoje é pedido por e-mail, à mão.
+- **Faxina automática dos alertas vencidos.** O alerta some do mapa porque a
+  consulta filtra por `expiresAt`, mas a linha continua no banco. Não há cron.
