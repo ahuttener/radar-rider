@@ -96,6 +96,16 @@ export default function Entrar() {
               {enviando ? 'Aguarde…' : modo === 'criar' ? 'Criar minha conta' : 'Entrar'}
             </button>
 
+            {/* O RGPD pede que a pessoa saiba a que está aderindo ANTES de
+                criar a conta — link depois do cadastro não vale. */}
+            {modo === 'criar' && (
+              <p className="consent-note">
+                Ao criar sua conta você aceita os{' '}
+                <Link href="/termos">Termos de uso</Link> e a{' '}
+                <Link href="/privacidade">Política de Privacidade</Link>.
+              </p>
+            )}
+
             {modo === 'login' && (
               <Link className="btn ghost" href="/esqueci-a-senha">Esqueci minha senha</Link>
             )}

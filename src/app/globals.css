@@ -288,6 +288,107 @@ textarea{min-height:96px;resize:vertical;font-family:inherit}
 .auth-tab.active{background:var(--green);color:#03140a;border-color:var(--green)}
 .emergency-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 
+/* ===== filtro de país ===== */
+.pais-bar{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  padding:10px 14px 2px;
+}
+.pais-chip{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  border-radius:12px;padding:9px 6px;font-size:12px;font-weight:800;
+  background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+}
+.pais-chip .flag{
+  width:20px;height:14px;flex:0 0 auto;border-radius:2px;
+  /* Bandeira clara em fundo escuro some sem a borda; a da Irlanda tem branco. */
+  box-shadow:0 0 0 1px rgba(255,255,255,.22);
+}
+/* O globo de "Todos" é traço, não bandeira: sem moldura, e segue a cor do texto. */
+.pais-chip:first-child .flag{box-shadow:none;border-radius:0}
+.pais-chip .n{
+  font-size:10px;font-weight:800;padding:1px 6px;border-radius:99px;
+  background:rgba(255,255,255,.08);color:var(--muted);
+}
+.pais-chip.on{background:var(--green);color:#03140a;border-color:var(--green)}
+.pais-chip.on .n{background:rgba(0,0,0,.22);color:#03140a}
+
+/* ===== aviso de cookies ===== */
+.cookie-bar{
+  position:fixed;z-index:900;left:0;right:0;
+  /* Acima da barra de navegação, senão o aviso cobre os botões do app. */
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  max-width:520px;margin:0 auto;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:13px 15px;border-radius:16px;
+  background:var(--panel);border:1px solid var(--line);
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);
+  animation:cookieIn .35s ease;
+}
+@keyframes cookieIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.cookie-bar p{flex:1 1 220px;font-size:12px;line-height:1.55;color:var(--muted)}
+.cookie-bar b{color:var(--text)}
+.cookie-bar a{color:var(--green);font-weight:800}
+.cookie-bar .btn{flex:0 0 auto;width:auto;padding:10px 20px;font-size:13px}
+@media(max-width:559px){.cookie-bar{left:10px;right:10px}}
+
+/* ===== páginas legais ===== */
+.legal{line-height:1.68;font-size:14px}
+.legal-date{font-size:12px;color:var(--muted);margin:-8px 0 20px}
+.legal h3{
+  font-size:15px;margin:26px 0 8px;color:var(--green);
+  padding-top:16px;border-top:1px solid var(--line);
+}
+.legal h3:first-of-type{border-top:0;padding-top:0}
+.legal p{margin-bottom:12px;color:var(--muted)}
+.legal b{color:var(--text)}
+.legal a{color:var(--green)}
+.legal ul{margin:0 0 14px;padding-left:20px;color:var(--muted)}
+.legal li{margin-bottom:8px}
+.legal code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+  background:var(--panel2);padding:2px 6px;border-radius:6px;color:var(--text);
+  /* Nome de cookie é longo e não tem espaço: sem isto, estoura a tela no celular. */
+  word-break:break-all;
+}
+.legal .privacy-box{margin-bottom:20px}
+.legal-table{
+  width:100%;border-collapse:collapse;margin:0 0 16px;font-size:12px;
+  /* A tabela de cookies não cabe em tela estreita; rola dentro de si mesma. */
+  display:block;overflow-x:auto;
+}
+.legal-table th,.legal-table td{
+  border:1px solid var(--line);padding:8px 10px;text-align:left;
+  vertical-align:top;min-width:88px;color:var(--muted);
+}
+/* Nome de cookie não se parte: "next-aut h.session- token" em três linhas é
+   ilegível. A tabela rola de lado, então há para onde ele crescer. */
+.legal-table code{word-break:normal;white-space:nowrap}
+.legal-table td:first-child{min-width:172px}
+.legal-table th{background:var(--panel2);color:var(--text);font-weight:800;white-space:nowrap}
+.legal-nav{
+  display:flex;flex-wrap:wrap;gap:14px;margin-top:28px;
+  padding-top:16px;border-top:1px solid var(--line);
+}
+.legal-nav a{font-size:12px;font-weight:800;color:var(--green);text-decoration:none}
+
+/* Linha de status do compartilhamento de localização na emergência. */
+.location-status{
+  font-size:12px;line-height:1.55;text-align:center;color:var(--muted);
+  margin:-2px 0 2px;min-height:34px;
+}
+.location-status.indo{color:var(--green)}
+.location-status.erro{color:var(--red)}
+
+.consent-note{font-size:11px;line-height:1.6;color:var(--muted);text-align:center}
+.consent-note a{color:var(--green);font-weight:800}
+
+/* ===== rodapé ===== */
+.rodape{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);text-align:center}
+.rodape nav{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-bottom:12px}
+.rodape nav a{font-size:12px;font-weight:800;color:var(--green);text-decoration:none}
+.rodape p{font-size:11px;line-height:1.6;color:var(--muted)}
+.rodape a{color:var(--muted)}
+
 /* ===== desktop ===== */
 @media(min-width:560px){
   #app{border-left:1px solid var(--line);border-right:1px solid var(--line);min-height:100dvh}

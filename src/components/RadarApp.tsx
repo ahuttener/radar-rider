@@ -10,6 +10,9 @@ import {
 } from '@/lib/display';
 import { distanceMetres, CONFIRM_RADIUS_M } from '@/lib/geo';
 import { useInstalacao, ModalInstalar, RegistrarServiceWorker } from './InstalarApp';
+import { usePais, SeletorPais, type FiltroPais } from './SeletorPais';
+import { AvisoCookies } from './AvisoCookies';
+import { ModalEmergencia } from './ModalEmergencia';
 
 // O mapa só existe no navegador: o Leaflet mexe em window ao ser importado.
 const MapView = dynamic(() => import('./MapView'), {
@@ -35,6 +38,7 @@ export default function RadarApp() {
   const [foco, setFoco] = useState<{ lat: number; lng: number } | null>(null);
   const [modal, setModal] = useState<'emergencia' | 'denuncia' | 'instalar' | null>(null);
   const { prompt: promptInstalar, instalado } = useInstalacao();
+  const { pais, escolher: escolherPais } = usePais(pos);
   const [toast, setToast] = useState<{ texto: string; erro?: boolean } | null>(null);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,7 +119,24 @@ export default function RadarApp() {
 
   /* ---------- derivados ---------- */
 
-  const lista = aba === 'hist' ? meus : alertas;
+  // O filtro de país vale para o mapa, para a lista e para os números do
+  // resumo — os três precisam contar a mesma história.
+  const visiveis = useMemo(
+    () => (pais === 'todos' ? alertas : alertas.filter((a) => a.countryCode === pais)),
+    [alertas, pais],
+  );
+
+  // Contagem por país fica FORA do filtro, senão o chip não escolhido mostraria
+  // sempre zero e ninguém descobriria que há alerta do outro lado.
+  const porPais = useMemo(() => ({
+    todos: alertas.length,
+    IE: alertas.filter((a) => a.countryCode === 'IE').length,
+    GB: alertas.filter((a) => a.countryCode === 'GB').length,
+  } as Record<FiltroPais, number>), [alertas]);
+
+  const lista = aba === 'hist' ? meus : visiveis;
+  // A busca do detalhe usa a lista completa de propósito: se a pessoa abrir um
+  // alerta e trocar o país, o que está aberto não pode sumir na cara dela.
   const alertaAberto = useMemo(
     () => alertas.find((a) => a.id === detalhe) ?? meus.find((a) => a.id === detalhe) ?? null,
     [detalhe, alertas, meus],
@@ -123,11 +144,11 @@ export default function RadarApp() {
 
   const resumo = useMemo(
     () => ({
-      total: alertas.length,
-      alta: alertas.filter((a) => catById(a.category).severity === 'alta').length,
-      vivo: alertas.filter((a) => a.isOngoing).length,
+      total: visiveis.length,
+      alta: visiveis.filter((a) => catById(a.category).severity === 'alta').length,
+      vivo: visiveis.filter((a) => a.isOngoing).length,
     }),
-    [alertas],
+    [visiveis],
   );
 
   function distanciaAte(a: AlertaPublico) {
@@ -194,12 +215,14 @@ export default function RadarApp() {
           </div>
         </header>
 
+        <SeletorPais pais={pais} aoEscolher={escolherPais} contagem={porPais} />
+
         <main>
           {/* ================= MAPA ================= */}
           <section className={`screen ${tela === 'map' ? 'active' : ''}`}>
             <div className="map-wrap">
               <MapView
-                alerts={alertas}
+                alerts={visiveis}
                 me={pos}
                 heat={calor}
                 focus={foco}
@@ -243,7 +266,11 @@ export default function RadarApp() {
                 <div className="card muted">
                   {aba === 'hist'
                     ? logado ? 'Você ainda não publicou nenhum alerta.' : 'Entre na sua conta para ver seu histórico.'
-                    : 'Nenhum alerta ativo na comunidade agora. Isso é uma boa notícia.'}
+                    /* Sem esta distinção, o filtro de país mentiria: diria que
+                       não há nada acontecendo quando só não há nada AQUI. */
+                    : pais !== 'todos' && alertas.length > 0
+                      ? `Nenhum alerta ativo ${pais === 'IE' ? 'na Irlanda' : 'no Reino Unido'} agora. Há ${alertas.length} no outro país — toque em 🌍 Todos para ver.`
+                      : 'Nenhum alerta ativo na comunidade agora. Isso é uma boa notícia.'}
                 </div>
               ) : (
                 lista.map((a) => {
@@ -368,6 +395,21 @@ export default function RadarApp() {
                   </button>
                 </div>
               )}
+
+              <footer className="rodape">
+                <nav>
+                  <Link href="/privacidade">Privacidade</Link>
+                  <Link href="/cookies">Cookies</Link>
+                  <Link href="/termos">Termos de uso</Link>
+                </nav>
+                <p>
+                  Radar Rider — segurança comunitária para entregadores na
+                  Irlanda e no Reino Unido.
+                </p>
+                <p>
+                  <a href="mailto:contato@radarrider.com">contato@radarrider.com</a>
+                </p>
+              </footer>
             </div>
           </section>
         </main>
@@ -390,28 +432,10 @@ export default function RadarApp() {
         {toast && <div className={`show ${toast.erro ? 'err' : ''}`} id="toast">{toast.texto}</div>}
       </div>
 
+      <AvisoCookies />
+
       {modal === 'emergencia' && (
-        <Modal titulo="🚨 Emergência" onFechar={() => setModal(null)}>
-          <div className="privacy-box">
-            <span>⚠️</span>
-            <p>Em perigo imediato, ligue <b>999</b> ou <b>112</b>. O Radar Rider não substitui a polícia.</p>
-          </div>
-          <div className="emergency-grid">
-            <a className="btn danger" href="tel:999">Ligar 999</a>
-            <a className="btn danger" href="tel:112">Ligar 112</a>
-          </div>
-          <div className="stack" style={{ marginTop: 10 }}>
-            <button className="btn primary" onClick={async () => {
-              try {
-                const p = await localizar();
-                const texto = `🚨 Preciso de ajuda. Esta é minha localização atual:\nhttps://www.google.com/maps?q=${p.lat},${p.lng}\n\nEnviado pelo Radar Rider.`;
-                window.location.href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-              } catch { /* já avisou */ }
-            }}>Mandar minha localização no WhatsApp</button>
-            <a className="btn ghost" target="_blank" rel="noopener"
-               href="https://www.garda.ie/en/contact-us/station-directory/">Achar uma Garda Station</a>
-          </div>
-        </Modal>
+        <ModalEmergencia pais={pais} aoFechar={() => setModal(null)} />
       )}
 
       {modal === 'instalar' && (

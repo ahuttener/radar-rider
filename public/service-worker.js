@@ -13,10 +13,18 @@
 // endereço der 404, o service worker nunca chegava a instalar, e por isso o
 // navegador nunca oferecia instalar o app.
 
-const CACHE = 'radar-rider-v3';
+// A versão sobe sempre que ESTATICOS muda: é o que faz o navegador descartar o
+// cache antigo. Sem isso, o manifesto velho (com o ícone errado) sobreviveria.
+const CACHE = 'radar-rider-v4';
 
 // Só o que não muda de significado: a logo e o manifesto.
-const ESTATICOS = ['/icon-192.png', '/icon-512.png', '/apple-touch-icon.png', '/manifest.json'];
+const ESTATICOS = [
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-512-maskable.png',
+  '/apple-touch-icon.png',
+  '/manifest.json',
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
