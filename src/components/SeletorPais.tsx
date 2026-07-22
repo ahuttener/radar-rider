@@ -35,6 +35,38 @@ function ehFiltroValido(v: string | null): v is FiltroPais {
   return v === 'todos' || v === 'IE' || v === 'GB';
 }
 
+/** Preferência já gravada, ou null se a pessoa nunca escolheu. */
+export function lerPaisSalvo(): FiltroPais | null {
+  try {
+    const v = localStorage.getItem(CHAVE);
+    return ehFiltroValido(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function salvarPais(p: FiltroPais) {
+  try {
+    localStorage.setItem(CHAVE, p);
+  } catch { /* sem armazenamento: vale só nesta visita */ }
+}
+
+/**
+ * Palpite de país pelo fuso horário do aparelho.
+ *
+ * Serve para a tela de login, onde não há GPS: pedir a localização de alguém
+ * que ainda nem tem conta é invasivo e a maioria nega. O fuso acerta quase
+ * sempre e não custa permissão nenhuma. É só um palpite de exibição — quem
+ * decide de verdade, depois, é o GPS dentro do app.
+ */
+export function paisPeloFusoHorario(): CountryCode {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Europe/London' ? 'GB' : 'IE';
+  } catch {
+    return 'IE';
+  }
+}
+
 export function usePais(pos: { lat: number; lng: number } | null) {
   const [pais, setPais] = useState<FiltroPais>('todos');
   // Escolha manual trava o filtro: depois que a pessoa clicou, o GPS não tem
