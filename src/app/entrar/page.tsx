@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { BandeiraIE, BandeiraGB } from '@/components/Bandeiras';
 import { lerPaisSalvo, salvarPais, paisPeloFusoHorario } from '@/components/SeletorPais';
-import { useInstalacao, ModalInstalar } from '@/components/InstalarApp';
+import { useInstalacao, ModalInstalar, RegistrarServiceWorker } from '@/components/InstalarApp';
 import type { CountryCode } from '@/lib/geo';
 
 export default function Entrar() {
@@ -77,6 +77,13 @@ export default function Entrar() {
 
   return (
     <div className="auth-shell">
+      {/* Sem service worker registrado o Android nunca dispara
+          `beforeinstallprompt`, e o botão de instalar aqui embaixo cairia nas
+          instruções manuais. Esta tela precisa registrar por conta própria: é
+          onde cai o link do e-mail de confirmação, então para muita gente ela é
+          a PRIMEIRA página do site, não a segunda. */}
+      <RegistrarServiceWorker />
+
       {/* ================= apresentação ================= */}
       <section className="auth-hero">
         <div className="auth-top">
