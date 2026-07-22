@@ -1,13 +1,46 @@
 import nodemailer from 'nodemailer';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 // Envio de e-mail pelo SMTP da Hostinger (contato@radarrider.com).
 // O layout segue o mesmo padrão do Keymate: tabela de 600px com estilo inline,
 // porque Gmail e Outlook descartam <style> no topo e não entendem flex/grid.
 
 const SITE = process.env.NEXTAUTH_URL || 'https://www.radarrider.com';
-// URL absoluta: cliente de e-mail não abre caminho relativo. Se o site não
-// estiver no ar, chega um quadrado vazio no lugar da logo.
-const LOGO = `${SITE}/icon-512.png`;
+
+// LOGO EMBUTIDA, NÃO LINKADA.
+//
+// A versão anterior apontava para https://www.radarrider.com/icon-512.png. O
+// endereço funciona — 200 pelo CDN, testado — e mesmo assim a logo não chegava:
+// Outlook e Hotmail BLOQUEIAM imagem remota de remetente desconhecido por
+// padrão, e o que aparece é um quadrado vazio até a pessoa clicar em "baixar
+// imagens". Num e-mail de confirmação de conta, que é o primeiro contato da
+// pessoa com a marca, isso é justamente onde a logo mais importa.
+//
+// Embutida como anexo `cid`, ela viaja dentro da mensagem: não depende de o
+// site estar no ar (e este aqui cai), não depende de permissão de imagem
+// remota, e não entrega ao servidor de e-mail um sinal de rastreamento.
+//
+// Usa o ícone de 192 e não o de 512: são 38 kB contra 155 kB, e o e-mail
+// mostra a logo com 120 px de largura de qualquer jeito.
+const LOGO_CID = 'logo-radar-rider';
+const LOGO_URL_RESERVA = `${SITE}/icon-192.png`;
+
+let logoEmMemoria: Buffer | null | undefined;
+
+/** Lê o PNG uma vez só e guarda. `null` quando o arquivo não está acessível. */
+function logoAnexo(): Buffer | null {
+  if (logoEmMemoria !== undefined) return logoEmMemoria;
+  try {
+    logoEmMemoria = readFileSync(path.join(process.cwd(), 'public', 'icon-192.png'));
+  } catch (e) {
+    // Sem o arquivo o e-mail ainda sai, só volta a depender da URL remota.
+    // Perder a logo nunca pode custar a confirmação da conta.
+    console.warn('[mailer] Logo não encontrada para embutir; usando URL remota.', e);
+    logoEmMemoria = null;
+  }
+  return logoEmMemoria;
+}
 
 function transporter() {
   const host = process.env.SMTP_HOST;
@@ -41,7 +74,7 @@ function layout(opts: {
   return `<div style="background:#050805;padding:28px 0;font-family:Arial,Helvetica,sans-serif">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="600" style="width:600px;max-width:92%;margin:0 auto;background:#0b120d;border:1px solid #1e3325;border-radius:18px;overflow:hidden">
     <tr><td align="center" style="padding:34px 40px 6px">
-      <a href="${SITE}" target="_blank" style="text-decoration:none;border:0"><img src="${LOGO}" alt="Radar Rider" width="120" style="width:120px;height:auto;border:0;display:inline-block;border-radius:20px"/></a>
+      <a href="${SITE}" target="_blank" style="text-decoration:none;border:0"><img src="${logoAnexo() ? `cid:${LOGO_CID}` : LOGO_URL_RESERVA}" alt="Radar Rider" width="120" height="120" style="width:120px;height:120px;border:0;display:inline-block;border-radius:20px"/></a>
     </td></tr>
     <tr><td align="center" style="padding:14px 44px 0">
       <h1 style="margin:0;font-size:24px;font-weight:800;color:#F7FBF8">${opts.titulo}</h1>
@@ -80,12 +113,25 @@ async function enviar(para: string, assunto: string, html: string, texto: string
     if (process.env.NODE_ENV !== 'production') console.info(`[mailer] ${assunto}\n${texto}`);
     return false;
   }
+  const logo = logoAnexo();
   await tx.sendMail({
     from: process.env.MAIL_FROM || 'Radar Rider <contato@radarrider.com>',
     to: para,
     subject: assunto,
     text: texto,
     html,
+    // `cid` casa com o src do <img> no layout. `contentDisposition: inline`
+    // evita que Gmail e Outlook mostrem a logo como anexo pendurado embaixo
+    // da mensagem, além de exibi-la no corpo.
+    attachments: logo
+      ? [{
+          filename: 'radar-rider.png',
+          content: logo,
+          cid: LOGO_CID,
+          contentType: 'image/png',
+          contentDisposition: 'inline' as const,
+        }]
+      : undefined,
   });
   return true;
 }
