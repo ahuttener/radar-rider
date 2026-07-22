@@ -21,6 +21,11 @@ test('separa Irlanda de Reino Unido pelas coordenadas', () => {
   }
 });
 
+test('não atribui Irlanda a coordenadas fora da área atendida', () => {
+  assert.equal(countryFromCoords(48.8566, 2.3522), null, 'Paris não é Irlanda');
+  assert.equal(countryFromCoords(-23.5505, -46.6333), null, 'São Paulo não é Irlanda');
+});
+
 test('coordenada publica borra a posicao para cerca de 100 metros', () => {
   const lat = 53.349812345;
   const lng = -6.260312345;

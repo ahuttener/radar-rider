@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-// Moldura comum das páginas de texto legal (privacidade, cookies, termos).
+// Moldura comum das páginas de texto legal.
 //
 // São páginas estáticas de propósito: nenhuma delas toca o banco. Numa
 // hospedagem em que a rota de banco pode falhar, a política de privacidade
@@ -35,6 +35,12 @@ export function PaginaLegal({ titulo, atualizadoEm, children }: {
             <Link href="/privacidade">Privacidade</Link>
             <Link href="/cookies">Cookies</Link>
             <Link href="/termos">Termos de uso</Link>
+            <Link href="/comunidade">Comunidade</Link>
+            <Link href="/seguranca">Segurança</Link>
+            <Link href="/rgpd">Direitos RGPD</Link>
+            <Link href="/denunciar-abuso">Denunciar abuso</Link>
+            <Link href="/contato">Contato</Link>
+            <Link href="/sobre">Sobre</Link>
           </nav>
         </article>
       </div>

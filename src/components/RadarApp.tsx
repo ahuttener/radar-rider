@@ -30,6 +30,7 @@ export default function RadarApp() {
   const [tela, setTela] = useState<Tela>('map');
   const [splash, setSplash] = useState(true);
   const [alertas, setAlertas] = useState<AlertaPublico[]>([]);
+  const [estadoDados, setEstadoDados] = useState<'carregando' | 'ok' | 'erro'>('carregando');
   const [meus, setMeus] = useState<AlertaPublico[]>([]);
   const [aba, setAba] = useState<'ativos' | 'hist'>('ativos');
   const [pos, setPos] = useState<Posicao | null>(null);
@@ -53,10 +54,15 @@ export default function RadarApp() {
   const carregar = useCallback(async () => {
     try {
       const r = await fetch('/api/alerts', { cache: 'no-store' });
+      if (!r.ok) throw new Error('API de alertas indisponível');
       const j = await r.json();
-      setAlertas(j.alerts ?? []);
+      if (!Array.isArray(j.alerts)) throw new Error('Resposta inválida da API de alertas');
+      setAlertas(j.alerts);
+      setEstadoDados('ok');
     } catch {
-      /* offline: mantém o que já estava na tela */
+      // Mantém dados antigos, se houver, mas não transforma falha do banco em
+      // zero alertas: para um app de segurança, indisponível não é seguro.
+      setEstadoDados('erro');
     }
   }, []);
 
@@ -184,6 +190,7 @@ export default function RadarApp() {
   }
 
   const nome = session?.user?.name ?? 'Rider';
+  const supportUrl = process.env.NEXT_PUBLIC_SUPPORT_URL || 'https://buymeacoffee.com/brdeals';
 
   return (
     <>
@@ -209,7 +216,15 @@ export default function RadarApp() {
           </div>
           <div className="top-actions">
             {!instalado && (
-              <button className="ghost-pill" onClick={() => setModal('instalar')}>⬇ Instalar</button>
+              <button
+                className="ghost-pill install-trigger"
+                aria-label="Instalar Radar Rider no celular"
+                onClick={() => setModal('instalar')}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/icon-192.png" alt="" />
+                <span className="install-label">Instalar app</span>
+              </button>
             )}
             <button className="sos" onClick={() => setModal('emergencia')}>🚨 Emergência</button>
           </div>
@@ -240,7 +255,18 @@ export default function RadarApp() {
               </div>
 
               <div className="summary">
-                <div className="row"><h3>Situação agora</h3><small>ao vivo</small></div>
+                <div className="row">
+                  <h3>Situação agora</h3>
+                  <small className={estadoDados === 'erro' ? 'data-offline' : ''}>
+                    {estadoDados === 'carregando' ? 'carregando…' : estadoDados === 'erro' ? 'indisponível' : 'ao vivo'}
+                  </small>
+                </div>
+                {estadoDados === 'erro' && (
+                  <div className="data-error" role="alert">
+                    Não foi possível atualizar os alertas. Os números abaixo podem estar desatualizados.
+                    <button onClick={carregar}>Tentar novamente</button>
+                  </div>
+                )}
                 <div className="stats">
                   <div className="stat green"><b>{resumo.total}</b><span>Alertas ativos</span></div>
                   <div className="stat red"><b>{resumo.alta}</b><span>Risco alto</span></div>
@@ -257,12 +283,20 @@ export default function RadarApp() {
           <section className={`screen ${tela === 'alerts' ? 'active' : ''}`}>
             <div className="pad">
               <h2 className="title">Alertas</h2>
-              <div className="tabs">
-                <div className={`tab ${aba === 'ativos' ? 'on' : ''}`} onClick={() => setAba('ativos')}>Ativos</div>
-                <div className={`tab ${aba === 'hist' ? 'on' : ''}`} onClick={() => setAba('hist')}>Meu histórico</div>
+              <div className="tabs" role="tablist" aria-label="Tipo de alerta">
+                <button role="tab" aria-selected={aba === 'ativos'} className={`tab ${aba === 'ativos' ? 'on' : ''}`} onClick={() => setAba('ativos')}>Ativos</button>
+                <button role="tab" aria-selected={aba === 'hist'} className={`tab ${aba === 'hist' ? 'on' : ''}`} onClick={() => setAba('hist')}>Meu histórico</button>
               </div>
 
-              {lista.length === 0 ? (
+              {aba === 'ativos' && estadoDados === 'erro' && lista.length === 0 ? (
+                <div className="card data-empty-error" role="alert">
+                  <b>Alertas temporariamente indisponíveis</b>
+                  <p>Não interprete esta tela vazia como ausência de risco.</p>
+                  <button className="btn ghost" onClick={carregar}>Tentar novamente</button>
+                </div>
+              ) : aba === 'ativos' && estadoDados === 'carregando' && lista.length === 0 ? (
+                <div className="card muted" aria-live="polite">Carregando alertas…</div>
+              ) : lista.length === 0 ? (
                 <div className="card muted">
                   {aba === 'hist'
                     ? logado ? 'Você ainda não publicou nenhum alerta.' : 'Entre na sua conta para ver seu histórico.'
@@ -372,9 +406,11 @@ export default function RadarApp() {
                     <h3>Minha conta</h3>
                     <div className="stack" style={{ marginTop: 10 }}>
                       <Link className="btn ghost" href="/esqueci-a-senha">Trocar minha senha</Link>
-                      {/* O painel de moderação ainda não foi portado para esta versão.
-                          O link só volta quando a página existir — botão que leva a
-                          404 é pior do que botão que não está lá. */}
+                      <Link className="btn ghost" href="/rgpd">Meus dados e direitos</Link>
+                      <Link className="btn ghost" href="/excluir-conta">Excluir minha conta</Link>
+                      {(session?.user?.role === 'admin' || session?.user?.role === 'moderator') && (
+                        <Link className="btn ghost" href="/moderacao">Painel de moderação</Link>
+                      )}
                     </div>
                   </div>
                 </>
@@ -396,11 +432,35 @@ export default function RadarApp() {
                 </div>
               )}
 
+              <div className="card support-card">
+                <span className="support-icon" aria-hidden="true">☕</span>
+                <div>
+                  <h3>Apoie o Radar Rider</h3>
+                  <p className="muted">
+                    O app é independente e gratuito. Seu apoio ajuda a manter o
+                    mapa, a hospedagem e as melhorias para a comunidade.
+                  </p>
+                </div>
+                <a className="btn support" href={supportUrl} target="_blank" rel="noopener noreferrer">
+                  Apoiar no Buy Me a Coffee
+                </a>
+              </div>
+
               <footer className="rodape">
+                <div className="feedback-callout">
+                  O Radar Rider é novo e melhora todo dia. Encontrou um erro,
+                  algo estranho ou tem uma sugestão? Toda crítica é bem-vinda —
+                  fale com a gente:{' '}
+                  <a href="mailto:contato@radarrider.com"><b>contato@radarrider.com</b></a> 💙
+                </div>
                 <nav>
                   <Link href="/privacidade">Privacidade</Link>
                   <Link href="/cookies">Cookies</Link>
                   <Link href="/termos">Termos de uso</Link>
+                  <Link href="/comunidade">Comunidade</Link>
+                  <Link href="/seguranca">Segurança</Link>
+                  <Link href="/denunciar-abuso">Denunciar abuso</Link>
+                  <a href={supportUrl} target="_blank" rel="noopener noreferrer">Apoiar</a>
                 </nav>
                 <p>
                   Radar Rider — segurança comunitária para entregadores na

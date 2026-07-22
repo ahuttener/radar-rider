@@ -33,7 +33,7 @@ export function severityClass(id: string) {
  * A unidade segue o aparelho de quem está olhando, não o país do alerta: quem
  * mora em Belfast pensa em milhas mesmo lendo um alerta de Dublin.
  */
-export function useMilesForDevice(): boolean {
+export function milesForDevice(): boolean {
   if (typeof Intl === 'undefined') return false;
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Europe/London';
@@ -42,7 +42,7 @@ export function useMilesForDevice(): boolean {
   }
 }
 
-export function formatDistance(metres: number, miles = useMilesForDevice()): string {
+export function formatDistance(metres: number, miles = milesForDevice()): string {
   if (miles) {
     const mi = metres / 1609.34;
     return mi < 0.2 ? `${Math.round(metres * 1.094)} yd` : `${mi.toFixed(1)} mi`;
