@@ -7,8 +7,14 @@
 // Isso está centralizado em src/lib/alert-visibility.ts — não montar resposta
 // de alerta à mão em rota nenhuma.
 
+// engineType = "client" tira o motor Rust do caminho. Na jaula CloudLinux da
+// Hostinger o motor nativo não sobe: ele abre um runtime tokio próprio, não
+// consegue criar as threads e aborta com "PANIC: timer has gone away", o que
+// derrubava TODA rota que tocasse o banco. Sem ele, as consultas passam pelo
+// driver MySQL em JavaScript configurado em src/lib/prisma.ts.
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "client"
 }
 
 datasource db {
