@@ -52,11 +52,17 @@ export async function DELETE(req: Request) {
       data: {
         email: `deleted-${userId}@deleted.invalid`,
         displayName: 'Conta excluída',
+        // Telefone é dado pessoal: a exclusão TEM que apagá-lo (RGPD). Sem esta
+        // linha o número sobrevivia à conta excluída.
+        phone: null,
         passwordHash,
         deletedAt: new Date(),
         passwordChangedAt: new Date(),
       },
     });
+
+    // Inscrições de push também carregam identificador do aparelho; somem com a conta.
+    await tx.pushSubscription.deleteMany({ where: { userId } });
   });
 
   return NextResponse.json(

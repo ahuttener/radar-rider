@@ -17,6 +17,8 @@ export async function GET() {
       id: true,
       email: true,
       displayName: true,
+      // Telefone é dado pessoal do usuário: precisa constar no export (RGPD).
+      phone: true,
       role: true,
       reputationScore: true,
       emailVerifiedAt: true,
