@@ -111,14 +111,14 @@ export function ModalEmergencia({ pais, aoFechar }: {
             </a>
           )}
 
-          {/* Número de não-emergência: muita coisa que o rider vive não é 999,
-              e sem esta linha ele liga para o 999 ou não liga para ninguém. */}
+          {/* Linha de não-emergência. No Reino Unido existe o 101 oficial da
+              polícia. Na Irlanda NÃO há equivalente: o caminho é a Garda local
+              (o link acima) e, na dúvida, o próprio 999/112. */}
           <p className="muted" style={{ fontSize: 12, textAlign: 'center', lineHeight: 1.6 }}>
-            Sem perigo imediato? Ligue{' '}
             {uk ? (
-              <><b>101</b> (Police UK)</>
+              <>Sem perigo imediato? Ligue <b>101</b> (Police UK)</>
             ) : (
-              <><b>1800 666 111</b> (Garda Confidential)</>
+              <>Na dúvida, ligue <b>999</b> ou <b>112</b></>
             )}
           </p>
 

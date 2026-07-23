@@ -398,7 +398,7 @@ export default function RadarApp() {
                       <h3>{nome}</h3>
                       <p className="muted">{session?.user?.email}</p>
                     </div>
-                    <button className="ghost-pill" onClick={() => signOut({ callbackUrl: '/' })}>Sair</button>
+                    <button className="ghost-pill" onClick={() => signOut({ callbackUrl: '/entrar' })}>Sair</button>
                   </div>
 
                   <div className="card">
