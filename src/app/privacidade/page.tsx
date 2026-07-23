@@ -22,15 +22,18 @@ export default function Privacidade() {
 
       <h3>Who is responsible</h3>
       <p>
-        <b>{identity.name}</b>, established at {identity.address}, operates Radar
-        Rider as an individual and is the data controller. For privacy matters,
-        write to <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.
+        <b>{identity.name}</b> operates Radar Rider as an individual and is the
+        data controller{identity.address ? `, based in ${identity.address}` : ' in Ireland'}.
+        The official contact for any privacy matter — access, correction,
+        deletion or complaints — is{' '}
+        <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>, a monitored
+        mailbox.
       </p>
       {identity.incomplete && (
         <div className="privacy-box">
           <span>⚠️</span><p>
-            <b>Pre-launch version:</b> the controller&apos;s legal name and
-            postal address still need to be configured before commercial launch.
+            <b>Pre-launch version:</b> the controller&apos;s legal name still
+            needs to be configured before commercial launch.
           </p>
         </div>
       )}

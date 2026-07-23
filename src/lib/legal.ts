@@ -3,10 +3,15 @@ export const PRIVACY_EMAIL = process.env.PRIVACY_EMAIL || 'contato@radarrider.co
 
 export function legalIdentity() {
   const name = process.env.LEGAL_CONTROLLER_NAME?.trim();
-  const address = process.env.LEGAL_CONTROLLER_ADDRESS?.trim();
+  // Endereço postal é OPCIONAL. O RGPD (Art. 13) exige identidade + dados de
+  // contato do controlador; um e-mail monitorado cumpre isso. Só entra na
+  // política se estiver configurado — o responsável não é obrigado a expor
+  // endereço residencial. O contato oficial é o PRIVACY_EMAIL.
+  const address = process.env.LEGAL_CONTROLLER_ADDRESS?.trim() || null;
   return {
     name: name || 'Responsável individual pelo Radar Rider',
-    address: address || 'Irlanda — endereço postal ainda não configurado',
-    incomplete: !name || !address,
+    address,
+    // Só o nome é obrigatório para deixar a identidade completa.
+    incomplete: !name,
   };
 }
