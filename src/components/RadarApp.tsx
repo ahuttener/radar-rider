@@ -191,7 +191,7 @@ export default function RadarApp() {
   }
 
   const nome = session?.user?.name ?? 'Rider';
-  const supportUrl = process.env.NEXT_PUBLIC_SUPPORT_URL || 'https://buymeacoffee.com/brdeals';
+  const supportUrl = process.env.NEXT_PUBLIC_SUPPORT_URL || 'https://buymeacoffee.com/radarrider';
 
   return (
     <>
