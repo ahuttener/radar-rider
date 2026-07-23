@@ -98,8 +98,26 @@ model User {
   moderationActions  ModerationAction[]
   deletionRequests   AccountDeletionRequest[]
   emailTokens        EmailToken[]
+  pushSubscriptions  PushSubscription[]
 
   @@index([deletedAt])
+}
+
+// Inscrição para notificação push (Web Push). Guarda o endpoint do navegador e
+// as chaves que cifram a mensagem. O `country` define quem recebe cada alerta —
+// notificamos por país escolhido, NUNCA por localização exata (o app não
+// rastreia posição em segundo plano; ver a decisão de privacidade no topo).
+model PushSubscription {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String      @unique @db.VarChar(500)
+  p256dh    String      @db.VarChar(200)
+  auth      String      @db.VarChar(100)
+  country   CountryCode
+  createdAt DateTime    @default(now())
+
+  @@index([country])
 }
 
 // Um único modelo para confirmar e-mail e para redefinir senha: o ciclo de vida

@@ -15,7 +15,7 @@
 
 // A versão sobe sempre que ESTATICOS muda: é o que faz o navegador descartar o
 // cache antigo. Sem isso, o manifesto velho (com o ícone errado) sobreviveria.
-const CACHE = 'radar-rider-v4';
+const CACHE = 'radar-rider-v5';
 
 // Só o que não muda de significado: a logo e o manifesto.
 const ESTATICOS = [
@@ -69,5 +69,36 @@ self.addEventListener('fetch', (e) => {
           return r;
         }),
     ),
+  );
+});
+
+// ===== Notificação push =====
+// A mensagem chega cifrada; o payload é um JSON { title, body, url }.
+self.addEventListener('push', (e) => {
+  let dados = {};
+  try { dados = e.data ? e.data.json() : {}; } catch { dados = {}; }
+  const titulo = dados.title || 'Radar Rider';
+  const opcoes = {
+    body: dados.body || 'Novo alerta na sua região.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: { url: dados.url || '/' },
+    // Vibra no celular; um alerta de segurança merece ser sentido.
+    vibrate: [80, 40, 80],
+  };
+  e.waitUntil(self.registration.showNotification(titulo, opcoes));
+});
+
+// Tocar na notificação abre o app (ou foca a aba já aberta).
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const destino = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientes) => {
+      for (const c of clientes) {
+        if ('focus' in c) return c.focus();
+      }
+      return self.clients.openWindow(destino);
+    }),
   );
 });

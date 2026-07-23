@@ -13,6 +13,7 @@ import { useInstalacao, ModalInstalar, RegistrarServiceWorker } from './Instalar
 import { usePais, SeletorPais, type FiltroPais } from './SeletorPais';
 import { AvisoCookies } from './AvisoCookies';
 import { ModalEmergencia } from './ModalEmergencia';
+import { NotificacoesPush } from './NotificacoesPush';
 
 // O mapa só existe no navegador: o Leaflet mexe em window ao ser importado.
 const MapView = dynamic(() => import('./MapView'), {
@@ -413,6 +414,8 @@ export default function RadarApp() {
                       a separar o que é real do que é boato.
                     </p>
                   </div>
+
+                  <NotificacoesPush pais={pais} />
 
                   <div className="card">
                     <h3>Minha conta</h3>

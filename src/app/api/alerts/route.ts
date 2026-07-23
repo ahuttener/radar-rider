@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { publicAlertSelect, toPublicAlert, toPublicAlerts } from '@/lib/alert-visibility';
 import { countryFromCoords, publicCoord, isValidCoord } from '@/lib/geo';
 import { executarRetencaoSeNecessario } from '@/lib/retention';
+import { notificarPais } from '@/lib/push';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,6 +101,19 @@ export async function POST(req: Request) {
     },
     select: publicAlertSelect,
   });
+
+  // Avisa quem optou por receber notificação no país do alerta. Nunca bloqueia
+  // nem derruba a publicação: notificarPais engole os próprios erros.
+  const rotulos: Record<string, string> = {
+    intimidacao: 'Intimidação', roubo: 'Roubo', grupo_hostil: 'Grupo hostil',
+    via_perigosa: 'Via perigosa', acidente: 'Acidente', outro: 'Risco',
+  };
+  const regiao = countryCode === 'GB' ? 'Reino Unido' : 'Irlanda';
+  await notificarPais(countryCode, {
+    title: `⚠️ ${rotulos[dados.data.category] ?? 'Alerta'} — ${regiao}`,
+    body: 'Novo alerta da comunidade na sua região. Toque para ver no mapa.',
+    url: '/',
+  }).catch(() => {});
 
   // O select já exclui os campos privados; a conversão é a segunda barreira
   // contra uma alteração futura da consulta que inclua coordenadas exatas.
