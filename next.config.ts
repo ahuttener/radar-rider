@@ -47,6 +47,30 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           // O app precisa do GPS; câmera e microfone ele nunca usa.
           { key: 'Permissions-Policy', value: 'geolocation=(self), camera=(), microphone=()' },
+          // HTTPS obrigatório por 2 anos, subdomínios inclusos. Só é seguro
+          // porque o site já roda 100% em HTTPS.
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          // CSP feito sob medida para o que o app realmente carrega:
+          //  - img: tiles do mapa (CARTO/OpenStreetMap), data: e blob: (Leaflet);
+          //  - script/style 'unsafe-inline': o Next injeta script de hidratação
+          //    inline sem nonce, e há estilos inline (style={{}}) e do Leaflet;
+          //  - connect 'self': todas as chamadas de API são do próprio domínio;
+          //  - frame-ancestors 'none': ninguém embute o app num iframe (clickjacking).
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "object-src 'none'",
+              "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.openstreetmap.org",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "connect-src 'self'",
+              "font-src 'self' data:",
+            ].join('; '),
+          },
         ],
       },
       {

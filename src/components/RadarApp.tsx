@@ -630,6 +630,7 @@ function Reportar({ logado, pedirPosicao, aviso, aoPublicar }: {
   const [duracao, setDuracao] = useState(180);
   const [acontecendo, setAcontecendo] = useState(false);
   const [posicao, setPosicao] = useState<Posicao | null>(null);
+  const [declarou, setDeclarou] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
   if (!logado) {
@@ -656,6 +657,7 @@ function Reportar({ logado, pedirPosicao, aviso, aoPublicar }: {
 
   async function publicar() {
     if (descricao.trim().length < 10) return aviso('Descreva o risco com pelo menos 10 caracteres.', true);
+    if (!declarou) return aviso('Marque a confirmação antes de publicar.', true);
     setEnviando(true);
     try {
       const p = posicao ?? (await pedirPosicao());
@@ -676,7 +678,7 @@ function Reportar({ logado, pedirPosicao, aviso, aoPublicar }: {
       if (!r.ok) return aviso(j.erro ?? 'Não foi possível publicar.', true);
 
       aviso('Alerta publicado com área aproximada.');
-      setPasso(1); setCategoria(null); setDescricao(''); setAcontecendo(false);
+      setPasso(1); setCategoria(null); setDescricao(''); setAcontecendo(false); setDeclarou(false);
       aoPublicar();
     } catch {
       aviso('Não foi possível publicar. Verifique sua conexão.', true);
@@ -790,9 +792,19 @@ function Reportar({ logado, pedirPosicao, aviso, aoPublicar }: {
             </p>
           </div>
 
+          {/* Declaração obrigatória antes de publicar (exigência da auditoria):
+              deixa explícito o que não pode entrar num alerta. */}
+          <label className="switch-line" style={{ alignItems: 'flex-start' }}>
+            <input type="checkbox" checked={declarou} onChange={(e) => setDeclarou(e.target.checked)} />
+            <span>
+              Confirmo que este alerta <b>não identifica ninguém</b>, não usa
+              linguagem discriminatória, não expõe endereço e não incita confronto.
+            </span>
+          </label>
+
           <div className="row-btns">
             <button className="btn ghost" onClick={() => setPasso(2)}>Voltar</button>
-            <button className="btn primary" onClick={publicar} disabled={enviando}>
+            <button className="btn primary" onClick={publicar} disabled={enviando || !declarou}>
               {enviando ? 'Publicando…' : '🚀 Publicar alerta'}
             </button>
           </div>

@@ -56,6 +56,9 @@ export default function TelaEntrada() {
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [msg, setMsg] = useState<{ texto: string; ok?: boolean } | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // Quando o cadastro é aceito, guarda o e-mail para mostrar a tela de
+  // "confira seu e-mail" no lugar do formulário.
+  const [enviadoPara, setEnviadoPara] = useState<string | null>(null);
 
   const { prompt: promptInstalar, instalado } = useInstalacao();
   const [modalInstalar, setModalInstalar] = useState(false);
@@ -100,7 +103,8 @@ export default function TelaEntrada() {
         });
         const j = await r.json();
         if (!r.ok) return setMsg({ texto: j.erro ?? 'Não foi possível criar a conta.' });
-        return setMsg({ texto: j.mensagem, ok: true });
+        // Sucesso: troca o formulário pela tela de "confira seu e-mail".
+        return setEnviadoPara(email.trim());
       }
 
       const r = await signIn('credentials', { email, password: senha, redirect: false });
@@ -204,6 +208,30 @@ export default function TelaEntrada() {
             <img src="/icon-512.png" alt="" />
           </div>
 
+          {enviadoPara ? (
+            <div className="auth-check-email">
+              <div className="auth-check-email-icon" aria-hidden="true">📧</div>
+              <h3>Confira seu e-mail</h3>
+              <p className="auth-sub">
+                Enviamos um link de confirmação para <b>{enviadoPara}</b>. Abra a
+                mensagem e toque no link para ativar sua conta.
+              </p>
+              <div className="privacy-box ok" style={{ display: 'block', marginTop: 12 }}>
+                <p>
+                  Não chegou em alguns minutos? Procure na <b>caixa de spam</b> ou
+                  lixo eletrônico. O link vale por tempo limitado.
+                </p>
+              </div>
+              <button
+                className="auth-submit"
+                style={{ marginTop: 16 }}
+                onClick={() => { setEnviadoPara(null); setModo('login'); setSenha(''); }}
+              >
+                Voltar para entrar
+              </button>
+            </div>
+          ) : (
+          <>
           <h3>{modo === 'login' ? 'Bem-vindo de volta' : 'Criar sua conta'}</h3>
           <p className="auth-sub">
             {modo === 'login'
@@ -323,6 +351,8 @@ export default function TelaEntrada() {
             <Link href="/termos">Termos</Link>
             <Link href="/cookies">Cookies</Link>
           </div>
+          </>
+          )}
         </div>
       </aside>
 
