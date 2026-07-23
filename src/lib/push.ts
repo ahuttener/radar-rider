@@ -11,8 +11,14 @@ import type { CountryCode } from './geo';
 
 const PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-// mailto de contato exigido pelo protocolo VAPID.
-const SUBJECT = process.env.VAPID_SUBJECT || 'mailto:contato@radarrider.com';
+// mailto de contato exigido pelo protocolo VAPID. O subject PRECISA ser um
+// mailto: ou uma URL http(s); qualquer outro valor faz o web-push recusar o
+// envio. Como essa variável é fácil de preencher errado no painel, validamos:
+// se não for um subject válido, cai no padrão em vez de derrubar o envio.
+const SUBJECT_RAW = process.env.VAPID_SUBJECT?.trim();
+const SUBJECT = SUBJECT_RAW && /^(mailto:|https?:\/\/)/.test(SUBJECT_RAW)
+  ? SUBJECT_RAW
+  : 'mailto:contato@radarrider.com';
 
 let configurado = false;
 export function pushConfigurado(): boolean {
