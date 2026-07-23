@@ -95,14 +95,28 @@ export default function Entrar() {
       {/* ================= apresentação ================= */}
       <section className="auth-hero">
         <div className="auth-top">
-          <Link className="auth-brand" href="/">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon-512.png" alt="Radar Rider" />
-            <div>
-              <h1>RADAR <span>RIDER</span></h1>
-              <small>SEGURANÇA COMUNITÁRIA</small>
-            </div>
-          </Link>
+          <div className="auth-brand-col">
+            <Link className="auth-brand" href="/">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icon-512.png" alt="Radar Rider" />
+              <div>
+                <h1>RADAR <span>RIDER</span></h1>
+                <small>SEGURANÇA COMUNITÁRIA</small>
+              </div>
+            </Link>
+            {/* Selo de origem: o Radar Rider é um produto BRDeals. */}
+            <a
+              className="by-brdeals"
+              href="https://www.brdeals.ie"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="BRDeals Irlanda — abre em uma nova aba"
+            >
+              <span aria-hidden="true">by</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brdeals-logo.png" alt="BRDeals" />
+            </a>
+          </div>
 
           <div className="auth-country" role="group" aria-label="Onde você roda">
             <button className={pais === 'IE' ? 'active' : ''} aria-pressed={pais === 'IE'}

@@ -215,11 +215,10 @@ export default function RadarApp() {
             </div>
           </div>
           <div className="top-actions">
-            {/* Selo de origem: o Radar Rider é um produto BRDeals. Leva ao
-                marketplace da Irlanda, que é o tenant padrão do BRDeals. */}
+            {/* Selo de origem: o Radar Rider é um produto BRDeals. */}
             <a
               className="by-brdeals"
-              href="https://brdealsglobal.online/?tenant=ireland&lang=pt"
+              href="https://www.brdeals.ie"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="BRDeals Irlanda — abre em uma nova aba"

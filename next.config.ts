@@ -33,6 +33,26 @@ const nextConfig: NextConfig = {
         source: '/service-worker.js',
         headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
       },
+      {
+        // Rota de dados: nunca cachear. É um app em tempo real; alerta novo tem
+        // de aparecer na hora, não daqui a um minuto.
+        source: '/api/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store, must-revalidate' }],
+      },
+      {
+        // O HTML das páginas NÃO pode ficar preso no CDN. Por padrão o Next marca
+        // página prerender com s-maxage de um ano; o CDN da Hostinger cacheia esse
+        // HTML e, depois de um deploy, continua servindo a versão antiga — que
+        // aponta para arquivos /_next/static que o build novo já apagou (o CSS dá
+        // 404 e a página aparece sem estilo). Com s-maxage curto o CDN revalida
+        // logo após o deploy. Os assets em /_next/static ficam DE FORA de propósito:
+        // são versionados por hash, nunca mudam para a mesma URL, então merecem o
+        // cache imutável que o Next já dá a eles.
+        source: '/((?!_next/static|_next/image|api|service-worker.js).*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=0, s-maxage=60, stale-while-revalidate=300' },
+        ],
+      },
     ];
   },
 };
