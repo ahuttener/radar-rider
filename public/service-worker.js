@@ -15,14 +15,15 @@
 
 // A versão sobe sempre que ESTATICOS muda: é o que faz o navegador descartar o
 // cache antigo. Sem isso, o manifesto velho (com o ícone errado) sobreviveria.
-const CACHE = 'radar-rider-v5';
+const CACHE = 'radar-rider-v6';
 
-// Só o que não muda de significado: a logo e o manifesto.
+// Só o que não muda de significado: a logo, o manifesto e o sino da notificação.
 const ESTATICOS = [
   '/icon-192.png',
   '/icon-512.png',
   '/icon-512-maskable.png',
   '/apple-touch-icon.png',
+  '/badge-sino.png',
   '/manifest.json',
 ];
 
@@ -81,7 +82,8 @@ self.addEventListener('push', (e) => {
   const opcoes = {
     body: dados.body || 'Novo alerta na sua região.',
     icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    // O badge é o ícone pequeno na barra de status: um sino, não a logo espremida.
+    badge: '/badge-sino.png',
     data: { url: dados.url || '/' },
     // Vibra no celular; um alerta de segurança merece ser sentido.
     vibrate: [80, 40, 80],
