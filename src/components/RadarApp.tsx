@@ -484,6 +484,17 @@ export default function RadarApp() {
           <button className="nav-btn fab" onClick={() => setTela('report')}>
             <span className="ic">＋</span>
           </button>
+          {/* A emergência também vive no topo, mas repetir aqui não é redundância
+              à toa: esta barra é a única parte da tela que se alcança com o
+              polegar de uma mão só, e quem usa o app está na rua, muitas vezes
+              sobre a moto. Ela ainda devolve ao botão ＋ o centro exato da
+              barra — com quatro itens ele caía em 62%, visivelmente torto. */}
+          <button
+            className={`nav-btn ${modal === 'emergencia' ? 'on' : ''}`}
+            onClick={() => setModal('emergencia')}
+          >
+            <span className="ic">🚨</span>Emergência
+          </button>
           <button className={`nav-btn ${tela === 'profile' ? 'on' : ''}`} onClick={() => setTela('profile')}>
             <span className="ic">👤</span>Perfil
           </button>

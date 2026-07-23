@@ -254,9 +254,21 @@ textarea{min-height:96px;resize:vertical;font-family:inherit}
   border-top:1px solid var(--line);
   padding:8px 6px calc(10px + env(safe-area-inset-bottom));
 }
+/* Colunas de largura IGUAL, não `min-width`. Com larguras livres o rótulo mais
+   longo ("Emergência", 77px) empurrava os vizinhos e o botão ＋ parava em 47%
+   da barra em vez de 50% — visivelmente torto, porque ele é o elemento que o
+   olho usa como centro. Com `flex:1 1 0` as cinco colunas são idênticas e o ＋,
+   sendo o terceiro de cinco, cai no meio exato. Medido: 50,0% de 320 a 520px. */
 .nav-btn{
   background:none;border:none;color:var(--muted);font-size:10px;font-weight:800;
-  display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex:1 1 0;min-width:0;
+}
+/* Em 320px a coluna fica com 62px e "Emergência" pede 63px. Um pixel não
+   chega a cortar, mas fica no limite — abaixo de 340px a fonte cede um pouco
+   para sobrar folga. */
+@media (max-width:340px){
+  .nav-btn{font-size:9px}
 }
 .nav-btn .ic{font-size:19px;line-height:1}
 .nav-btn.on{color:var(--green)}
