@@ -7,7 +7,8 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 const schema = z.object({
-  action: z.enum(['review', 'dismiss', 'hide', 'remove']),
+  // 'restore' devolve ao ar um alerta ocultado/removido por engano.
+  action: z.enum(['review', 'dismiss', 'hide', 'remove', 'restore']),
   notes: z.string().trim().max(500).optional(),
 });
 
@@ -44,6 +45,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         where: { id: report.alertId },
         data: { status: parsed.data.action === 'hide' ? 'hidden' : 'removed' },
       });
+    } else if (parsed.data.action === 'restore') {
+      await tx.alert.update({ where: { id: report.alertId }, data: { status: 'active' } });
     }
     await tx.moderationAction.create({
       data: {

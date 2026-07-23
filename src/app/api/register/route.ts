@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { criarToken } from '@/lib/tokens';
 import { enviarConfirmacaoDeConta } from '@/lib/mailer';
+import { registrarEChecar, ipDaRequisicao } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,19 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Anti-abuso: no máximo 3 cadastros por IP por hora. Segura criação em massa
+  // de contas e disparo de e-mails de confirmação.
+  const { limitado } = await registrarEChecar('register', ipDaRequisicao(req), {
+    max: 3,
+    janelaMs: 60 * 60 * 1000,
+  });
+  if (limitado) {
+    return NextResponse.json(
+      { erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' },
+      { status: 429 },
+    );
+  }
+
   let corpo: unknown;
   try {
     corpo = await req.json();

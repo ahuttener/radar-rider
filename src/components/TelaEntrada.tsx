@@ -114,7 +114,13 @@ export default function TelaEntrada() {
         const texto =
           r.error === 'EMAIL_NAO_CONFIRMADO'
             ? 'Confirme seu e-mail primeiro. O link está na sua caixa de entrada.'
-            : 'E-mail ou senha incorretos.';
+            : r.error === 'CONTA_BANIDA'
+              ? 'Esta conta foi banida por violar as regras da comunidade.'
+              : r.error === 'CONTA_SUSPENSA'
+                ? 'Esta conta está suspensa temporariamente. Tente novamente mais tarde.'
+                : r.error === 'MUITAS_TENTATIVAS'
+                  ? 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'
+                  : 'E-mail ou senha incorretos.';
         return setMsg({ texto });
       }
       router.push('/');

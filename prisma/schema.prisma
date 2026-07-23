@@ -84,6 +84,12 @@ model User {
   // Exclusão de conta é marcada, não apagada na hora: os alertas precisam
   // continuar existindo para quem já confiou neles na rua.
   deletedAt       DateTime?
+  // Enforcement de moderação. Suspensão é temporária (até suspendedUntil);
+  // banimento é permanente (bannedAt preenchido). O login recusa ambos.
+  suspendedUntil    DateTime?
+  suspensionReason  String?   @db.VarChar(200)
+  bannedAt          DateTime?
+  banReason         String?   @db.VarChar(200)
   createdAt       DateTime  @default(now())
 
   alerts             Alert[]
@@ -198,4 +204,17 @@ model AccountDeletionRequest {
   createdAt DateTime @default(now())
 
   @@index([status])
+}
+
+// Rate limiting sem serviço externo: cada tentativa vira uma linha e o servidor
+// conta as recentes por (bucket, identifier) dentro da janela. Precisa do banco
+// porque a Hostinger roda vários processos e um contador em memória não seria
+// compartilhado entre eles. Ver src/lib/rate-limit.ts.
+model RateHit {
+  id         String   @id @default(cuid())
+  bucket     String   @db.VarChar(40)
+  identifier String   @db.VarChar(190)
+  createdAt  DateTime @default(now())
+
+  @@index([bucket, identifier, createdAt])
 }

@@ -25,6 +25,9 @@ export async function GET() {
       alert: {
         select: {
           id: true,
+          // O autor só aparece aqui, na rota de moderação (staff-only), para
+          // permitir suspender/banir reincidente. Nunca sai em rota pública.
+          userId: true,
           category: true,
           description: true,
           status: true,

@@ -2,6 +2,7 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
+import { contarRecentes, registrar } from './rate-limit';
 
 // Sessão por JWT, sem tabela de sessão.
 // O app só tem login por e-mail e senha; guardar sessão no banco custaria uma
@@ -38,6 +39,13 @@ export const authOptions: NextAuthOptions = {
         const password = credentials?.password;
         if (!email || !password) return null;
 
+        // Anti-força-bruta: 10 FALHAS por conta em 15 min bloqueiam novas
+        // tentativas. Só falhas contam, então quem acerta a senha nunca é punido.
+        const JANELA = 15 * 60 * 1000;
+        if ((await contarRecentes('login', email, JANELA)) >= 10) {
+          throw new Error('MUITAS_TENTATIVAS');
+        }
+
         const user = await prisma.user.findUnique({ where: { email } });
 
         // Compara mesmo sem usuário. Sem isso, a resposta volta na hora para
@@ -46,8 +54,16 @@ export const authOptions: NextAuthOptions = {
         const hash = user?.passwordHash ?? HASH_DESCARTAVEL;
         const confere = await bcrypt.compare(password, hash);
 
-        if (!user || !confere) return null;
+        if (!user || !confere) {
+          await registrar('login', email);
+          return null;
+        }
         if (user.deletedAt) return null;
+        // Banimento é permanente; suspensão vale até a data marcada.
+        if (user.bannedAt) throw new Error('CONTA_BANIDA');
+        if (user.suspendedUntil && user.suspendedUntil.getTime() > Date.now()) {
+          throw new Error('CONTA_SUSPENSA');
+        }
         // Conta não confirmada não entra: senão qualquer um cria conta com o
         // e-mail de outra pessoa e passa a publicar alerta em nome dela.
         if (!user.emailVerifiedAt) throw new Error('EMAIL_NAO_CONFIRMADO');
