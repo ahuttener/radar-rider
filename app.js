@@ -18,18 +18,71 @@ const hostname = process.env.HOST || '0.0.0.0';
 const app = next({ dev: false, hostname, port });
 const handle = app.getRequestHandler();
 
+// Quanto esperar as requisições em curso terminarem antes de sair à força.
+// Sem esse teto, uma única conexão pendurada mantém o processo vivo para
+// sempre — que é exatamente o problema que este desligamento existe para
+// resolver.
+const ESPERA_MAXIMA_MS = 10_000;
+
 app
   .prepare()
   .then(() => {
-    createServer((req, res) => {
+    const servidor = createServer((req, res) => {
       handle(req, res).catch((erro) => {
         console.error('Falha ao atender a requisição:', erro);
         res.statusCode = 500;
         res.end('Erro interno.');
       });
-    }).listen(port, hostname, () => {
+    });
+
+    servidor.listen(port, hostname, () => {
       console.log(`Radar Rider no ar em http://${hostname}:${port}`);
     });
+
+    // Sem isto o processo antigo NÃO morre quando o Passenger sobe uma
+    // instância nova: ele fica vivo segurando ~300 MB e o orçamento de
+    // processos da jaula CloudLinux, até a hospedagem recusar conexão nova
+    // (o SSH cai na hora, e o painel acusa uso alto de recursos em 24h com
+    // todas as métricas instantâneas no chão).
+    let desligando = false;
+    for (const sinal of ['SIGTERM', 'SIGINT']) {
+      process.on(sinal, () => {
+        // Passenger manda SIGTERM mais de uma vez; sem esta trava o segundo
+        // sinal reinicia a contagem e o processo demora ainda mais a sair.
+        if (desligando) return;
+        desligando = true;
+        console.log(`Recebi ${sinal}, encerrando.`);
+
+        const forcar = setTimeout(() => {
+          console.error('Requisições não terminaram a tempo, saindo à força.');
+          process.exit(0);
+        }, ESPERA_MAXIMA_MS);
+        // O timer não pode ser o único motivo de o processo continuar vivo.
+        forcar.unref();
+
+        servidor.close(async () => {
+          clearTimeout(forcar);
+          // Fechar só o servidor HTTP não basta: quem fica órfão comendo
+          // memória são os `next-server`, que são recursos do Next, não deste
+          // arquivo. `app.close()` é o que os derruba junto.
+          try {
+            await app.close();
+          } catch (erro) {
+            console.error('Falha ao encerrar o Next:', erro);
+          }
+          process.exit(0);
+        });
+
+        // `close()` para de aceitar conexão nova e espera as abertas fecharem.
+        // O proxy mantém conexão keep-alive ociosa aberta por minutos; estas
+        // são derrubadas na hora porque não há nada em curso nelas.
+        // Deliberadamente NÃO se usa `closeAllConnections()`: aquele mata
+        // também a requisição em andamento, ou seja, corta a resposta de quem
+        // está no meio de um cadastro. Requisição travada é problema do teto
+        // acima, não deste desligamento.
+        servidor.closeIdleConnections();
+      });
+    }
   })
   .catch((erro) => {
     // Sair com código diferente de zero para a plataforma perceber que o
