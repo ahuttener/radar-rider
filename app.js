@@ -10,6 +10,22 @@
 const { createServer } = require('node:http');
 const next = require('next');
 
+// O painel da Hostinger ESCAPA o `%` ao injetar as variáveis no processo: a
+// senha do banco vai para o ambiente como `...\%40...` em vez de `...%40...`.
+// Como src/lib/prisma.ts faz decodeURIComponent na senha, a barra sobrevive e
+// o MySQL recusa com ER_ACCESS_DENIED — derrubando TODA rota que toque o banco,
+// inclusive criar conta e entrar. Medido comparando o `.env` (sem barra) com
+// /proc/<pid>/environ (com barra).
+//
+// Desfazer isso aqui é seguro porque `\` não tem significado numa URL de
+// conexão: só se remove a barra que estiver imediatamente antes de um `%`,
+// que é exatamente o estrago do painel. Uma senha legítima com `\` literal
+// teria de vir como `%5C`, e essa forma não é tocada.
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('\\%')) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL.replace(/\\(?=%)/g, '');
+  console.log('DATABASE_URL: desfeito o escape de % inserido pelo painel.');
+}
+
 // A porta vem da plataforma. Fixar 3000 faria o processo subir na porta errada
 // e o proxy continuaria sem achar ninguém — que é o 503 que estávamos vendo.
 const port = Number(process.env.PORT) || 3000;
