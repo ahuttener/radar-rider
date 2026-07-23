@@ -478,28 +478,33 @@ textarea{min-height:96px;resize:vertical;font-family:inherit}
 .emergency-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 
 /* ===== filtro de país ===== */
+/* Filtro de país discreto: o GPS já escolhe o país sozinho, então isto é só
+   uma correção. Fica compacto e encostado à direita, sem competir com o mapa. */
 .pais-bar{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
-  padding:10px 14px 2px;
+  display:flex;justify-content:flex-end;gap:5px;
+  padding:8px 14px 2px;
 }
 .pais-chip{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  border-radius:12px;padding:9px 6px;font-size:12px;font-weight:800;
-  background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800;
+  background:transparent;border:1px solid var(--line);color:var(--muted);
 }
 .pais-chip .flag{
-  width:20px;height:14px;flex:0 0 auto;border-radius:2px;
+  width:16px;height:11px;flex:0 0 auto;border-radius:2px;
   /* Bandeira clara em fundo escuro some sem a borda; a da Irlanda tem branco. */
   box-shadow:0 0 0 1px rgba(255,255,255,.22);
 }
 /* O globo de "Todos" é traço, não bandeira: sem moldura, e segue a cor do texto. */
 .pais-chip:first-child .flag{box-shadow:none;border-radius:0}
 .pais-chip .n{
-  font-size:10px;font-weight:800;padding:1px 6px;border-radius:99px;
+  font-size:10px;font-weight:800;padding:0 5px;border-radius:99px;
   background:rgba(255,255,255,.08);color:var(--muted);
 }
-.pais-chip.on{background:var(--green);color:#03140a;border-color:var(--green)}
-.pais-chip.on .n{background:rgba(0,0,0,.22);color:#03140a}
+/* Ativo: verde contido (fundo translúcido + borda), não o verde cheio de antes. */
+.pais-chip.on{
+  background:rgba(35,243,107,.14);border-color:rgba(35,243,107,.55);color:var(--green);
+}
+.pais-chip.on .n{background:rgba(35,243,107,.2);color:var(--green)}
 
 /* ===== aviso de cookies ===== */
 .cookie-bar{
