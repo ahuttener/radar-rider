@@ -16,6 +16,33 @@ import type { CountryCode } from '@/lib/geo';
 // link do e-mail de confirmação. Depois do login vai para "/", que passa a
 // mostrar o app.
 
+// DDIs para o cadastro. O topo tem os três que importam para este público
+// (Irlanda, Reino Unido e Brasil — muito entregador aqui mantém o número do
+// Brasil); o resto é a lista de onde costuma vir quem usa o app. O <select>
+// nativo abre a roda de rolagem do próprio celular.
+const DDIS: Array<{ dial: string; nome: string }> = [
+  { dial: '+353', nome: 'Irlanda' },
+  { dial: '+44', nome: 'Reino Unido' },
+  { dial: '+55', nome: 'Brasil' },
+  { dial: '+351', nome: 'Portugal' },
+  { dial: '+1', nome: 'EUA / Canadá' },
+  { dial: '+34', nome: 'Espanha' },
+  { dial: '+33', nome: 'França' },
+  { dial: '+49', nome: 'Alemanha' },
+  { dial: '+39', nome: 'Itália' },
+  { dial: '+31', nome: 'Países Baixos' },
+  { dial: '+32', nome: 'Bélgica' },
+  { dial: '+41', nome: 'Suíça' },
+  { dial: '+43', nome: 'Áustria' },
+  { dial: '+45', nome: 'Dinamarca' },
+  { dial: '+46', nome: 'Suécia' },
+  { dial: '+47', nome: 'Noruega' },
+  { dial: '+48', nome: 'Polônia' },
+  { dial: '+61', nome: 'Austrália' },
+  { dial: '+64', nome: 'Nova Zelândia' },
+  { dial: '+352', nome: 'Luxemburgo' },
+];
+
 export default function TelaEntrada() {
   const router = useRouter();
   const [modo, setModo] = useState<'login' | 'criar'>('login');
@@ -23,6 +50,8 @@ export default function TelaEntrada() {
   const [senha, setSenha] = useState('');
   const [verSenha, setVerSenha] = useState(false);
   const [nome, setNome] = useState('');
+  const [ddi, setDdi] = useState('+353');
+  const [telefone, setTelefone] = useState('');
   const [maior18, setMaior18] = useState(false);
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [msg, setMsg] = useState<{ texto: string; ok?: boolean } | null>(null);
@@ -52,6 +81,11 @@ export default function TelaEntrada() {
 
     try {
       if (modo === 'criar') {
+        // Telefone em E.164: DDI escolhido + só os dígitos do que a pessoa
+        // digitou (tira espaço, traço, parênteses e um zero inicial de tronco).
+        const numero = telefone.replace(/\D/g, '').replace(/^0+/, '');
+        const phone = `${ddi}${numero}`;
+
         const r = await fetch('/api/register', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -59,6 +93,7 @@ export default function TelaEntrada() {
             email,
             password: senha,
             displayName: nome,
+            phone,
             isAdult: maior18,
             acceptedTerms: aceitouTermos,
           }),
@@ -192,6 +227,26 @@ export default function TelaEntrada() {
                 <input id="nome" type="text" value={nome} onChange={(e) => setNome(e.target.value)}
                        required minLength={2} maxLength={40}
                        placeholder="Como os outros entregadores vão te ver" />
+
+                <label htmlFor="telefone">Telefone</label>
+                <div className="auth-phone">
+                  <select
+                    className="auth-ddi"
+                    aria-label="Código do país (DDI)"
+                    value={ddi}
+                    onChange={(e) => setDdi(e.target.value)}
+                  >
+                    {DDIS.map(({ dial, nome: pais }) => (
+                      <option key={dial + pais} value={dial}>{dial} · {pais}</option>
+                    ))}
+                  </select>
+                  <input
+                    id="telefone" type="tel" inputMode="numeric" autoComplete="tel-national"
+                    required value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
+                    placeholder="Número com DDD"
+                  />
+                </div>
               </>
             )}
 

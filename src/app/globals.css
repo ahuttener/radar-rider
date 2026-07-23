@@ -410,6 +410,15 @@ textarea{min-height:96px;resize:vertical;font-family:inherit}
 }
 .auth-card input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(35,243,107,.08)}
 
+/* Telefone: DDI (select rolável) + número, lado a lado. O select copia a
+   altura e o fundo do input do card para os dois ficarem alinhados. */
+.auth-phone{display:flex;gap:8px}
+.auth-ddi{
+  flex:0 0 auto;max-width:44%;
+  height:52px;border-radius:15px;border:1px solid var(--line);
+  background:#09110c;color:#fff;padding:0 10px;font-weight:700;
+}
+.auth-phone input{flex:1 1 auto;min-width:0}
 .auth-pass{position:relative}
 .auth-pass input{padding-right:86px}
 .auth-pass button{

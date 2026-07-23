@@ -69,6 +69,10 @@ model User {
   email           String    @unique
   passwordHash    String
   displayName     String    @db.VarChar(40)
+  // Telefone com DDI, guardado no formato E.164 (ex: +353871234567). É opcional
+  // na coluna porque contas criadas antes desta mudança não têm — mas o cadastro
+  // novo exige (validado na rota /api/register).
+  phone           String?   @db.VarChar(30)
   role            Role      @default(user)
   reputationScore Int       @default(0)
   emailVerifiedAt DateTime?

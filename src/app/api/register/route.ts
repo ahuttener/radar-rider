@@ -11,6 +11,10 @@ const schema = z.object({
   email: z.string().email().max(200),
   password: z.string().min(8).max(200),
   displayName: z.string().trim().min(2).max(40),
+  // Telefone no formato E.164: "+" seguido do DDI e do número, só dígitos.
+  // O front monta a partir do DDI escolhido e do número digitado. Aceita de 8
+  // a 15 dígitos depois do "+", que cobre os países atendidos sem travar em um.
+  phone: z.string().trim().regex(/^\+\d{8,15}$/, 'Telefone inválido.'),
   isAdult: z.literal(true),
   acceptedTerms: z.literal(true),
 });
@@ -47,6 +51,7 @@ export async function POST(req: Request) {
         email,
         passwordHash: await bcrypt.hash(dados.data.password, 12),
         displayName: dados.data.displayName,
+        phone: dados.data.phone,
       },
     });
 

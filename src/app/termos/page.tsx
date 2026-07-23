@@ -2,114 +2,114 @@ import type { Metadata } from 'next';
 import { PaginaLegal } from '@/components/PaginaLegal';
 
 export const metadata: Metadata = {
-  title: 'Termos de Uso — Radar Rider',
-  description: 'As regras do Radar Rider: o que é permitido publicar e o que o app não é.',
+  title: 'Terms of Use — Radar Rider',
+  description: 'The rules of Radar Rider: what you may post and what the app is not.',
 };
 
 export default function Termos() {
   return (
-    <PaginaLegal titulo="Termos de Uso" atualizadoEm="22 de julho de 2026">
+    <PaginaLegal titulo="Terms of Use" atualizadoEm="July 23, 2026" lang="en">
       <div className="privacy-box">
         <span>⚠️</span>
         <p>
-          <b>O Radar Rider não é um serviço de emergência.</b> Em perigo
-          imediato, ligue <b>999</b> ou <b>112</b>. O app não chama a polícia por
-          você e ninguém do outro lado está de plantão lendo os alertas.
+          <b>Radar Rider is not an emergency service.</b> In immediate danger,
+          call <b>999</b> or <b>112</b>. The app does not call the police for
+          you, and no one on the other side is on duty reading the alerts.
         </p>
       </div>
 
       <p>
-        Ao usar o Radar Rider você concorda com estas regras. Elas são curtas de
-        propósito.
+        By using Radar Rider you agree to these rules. They are deliberately
+        short.
       </p>
 
-      <h3>1. O que o Radar Rider é</h3>
+      <h3>1. What Radar Rider is</h3>
       <p>
-        Um mural de avisos feito por entregadores, para entregadores, na Irlanda
-        e no Reino Unido. Os alertas são publicados por outras pessoas da
-        comunidade — <b>não são verificados por nós</b> e não são informação
-        oficial de polícia. Trate cada alerta como o que ele é: o relato de um
-        colega. Use o seu próprio julgamento antes de mudar de rota.
+        A noticeboard made by delivery riders, for delivery riders, in Ireland
+        and the United Kingdom. Alerts are posted by other people in the
+        community — <b>they are not verified by us</b> and are not official
+        police information. Treat each alert for what it is: a report from a
+        fellow rider. Use your own judgement before changing your route.
       </p>
 
-      <h3>2. Sua conta</h3>
+      <h3>2. Your account</h3>
       <ul>
-        <li>Você precisa ter 18 anos ou mais.</li>
-        <li>Use um e-mail de verdade, que seja seu — é por ele que recuperamos sua senha.</li>
-        <li>A senha é sua responsabilidade. Não empreste a conta.</li>
-        <li>Seu nome público nunca aparece junto de um alerta.</li>
+        <li>You must be 18 or older.</li>
+        <li>Use a real email address that is yours — it is how we recover your password.</li>
+        <li>Your password is your responsibility. Do not share your account.</li>
+        <li>Your public name never appears next to an alert.</li>
       </ul>
 
-      <h3>3. O que você NÃO pode publicar</h3>
-      <p>Esta é a parte que leva à remoção do alerta e à suspensão da conta:</p>
+      <h3>3. What you may NOT post</h3>
+      <p>This is the part that leads to an alert being removed and an account suspended:</p>
       <ul>
         <li>
-          <b>Identificar pessoas.</b> Nada de nome, placa, foto, endereço,
-          descrição de roupa ou qualquer coisa que aponte para uma pessoa
-          específica. Descreva o <i>risco</i>, não o suspeito.
+          <b>Identifying people.</b> No names, licence plates, photos,
+          addresses, clothing descriptions, or anything pointing to a specific
+          person. Describe the <i>risk</i>, not the suspect.
         </li>
         <li>
-          <b>Descrição por raça, etnia, nacionalidade ou religião.</b> Um grupo
-          não vira perigo por causa de quem é. Isso não é alerta de segurança, é
-          discriminação, e é removido na hora.
+          <b>Descriptions by race, ethnicity, nationality or religion.</b> A
+          group does not become a danger because of who they are. That is not a
+          safety alert, it is discrimination, and it is removed immediately.
         </li>
-        <li><b>Alerta falso ou inventado.</b> Espalhar pânico prejudica quem está na rua.</li>
-        <li><b>Convocação para retaliação, vingança ou justiça com as próprias mãos.</b></li>
-        <li><b>Propaganda, venda, vaga de trabalho, corrente ou spam.</b></li>
-        <li><b>Usar o app para seguir, vigiar ou intimidar alguém.</b></li>
+        <li><b>False or made-up alerts.</b> Spreading panic harms people on the street.</li>
+        <li><b>Calls for retaliation, revenge or vigilante justice.</b></li>
+        <li><b>Advertising, sales, job posts, chain messages or spam.</b></li>
+        <li><b>Using the app to follow, watch or intimidate anyone.</b></li>
       </ul>
       <p>
-        Publique só o que você viu ou viveu, e só até 1 hora depois de
-        acontecer. Alerta velho tira a atenção do que está acontecendo agora.
+        Post only what you saw or lived through, and only up to 1 hour after it
+        happened. An old alert draws attention away from what is happening now.
       </p>
 
-      <h3>4. Confirmações e denúncias</h3>
+      <h3>4. Confirmations and reports</h3>
       <p>
-        Você só consegue confirmar um alerta se estiver perto dele. Confirmar
-        algo que você não presenciou quebra a única coisa que separa o que é real
-        do que é boato. Viu algo fora das regras? Use o botão de denúncia — é o
-        caminho certo, e ele funciona.
+        You can only confirm an alert if you are near it. Confirming something
+        you did not witness breaks the one thing that separates what is real
+        from rumour. Saw something against the rules? Use the report button — it
+        is the right path, and it works.
       </p>
 
-      <h3>5. Moderação</h3>
+      <h3>5. Moderation</h3>
       <p>
-        Podemos remover qualquer alerta e suspender ou encerrar qualquer conta
-        que quebre estas regras, sem aviso prévio quando houver risco a alguém.
-        Se você achar que erramos, escreva para{' '}
+        We may remove any alert and suspend or close any account that breaks
+        these rules, without prior notice where someone is at risk. If you think
+        we got it wrong, write to{' '}
         <a href="mailto:contato@radarrider.com">contato@radarrider.com</a>.
       </p>
 
-      <h3>6. Do que você continua dono</h3>
+      <h3>6. What stays yours</h3>
       <p>
-        O texto que você publica continua sendo seu. Ao publicar, você nos dá
-        permissão para exibi-lo dentro do Radar Rider para a comunidade. Nada
-        mais — não revendemos e não licenciamos seu conteúdo para terceiros.
+        The text you post remains yours. By posting, you give us permission to
+        display it inside Radar Rider to the community. Nothing more — we do not
+        resell and do not license your content to third parties.
       </p>
 
-      <h3>7. Limite da nossa responsabilidade</h3>
+      <h3>7. Limit of our liability</h3>
       <p>
-        O Radar Rider é oferecido &quot;como está&quot;, gratuitamente e sem
-        garantia de que estará no ar, correto ou completo. Não respondemos por
-        prejuízo decorrente de um alerta impreciso, atrasado, ausente ou falso, e
-        nem por decisões que você tomar com base nele. Nada aqui exclui
-        responsabilidade que a lei não permite excluir — por morte, lesão
-        corporal causada por negligência ou fraude, por exemplo.
+        Radar Rider is provided &quot;as is&quot;, free of charge and with no
+        guarantee that it will be available, accurate or complete. We are not
+        liable for loss arising from an inaccurate, delayed, missing or false
+        alert, nor for decisions you make based on one. Nothing here excludes
+        liability that the law does not allow to be excluded — for death or
+        personal injury caused by negligence, or for fraud, for example.
       </p>
 
-      <h3>8. Mudanças e lei aplicável</h3>
+      <h3>8. Changes and governing law</h3>
       <p>
-        Podemos atualizar estes termos; a data no topo mostra a última versão, e
-        mudanças relevantes são avisadas dentro do app. Estes termos são regidos
-        pela lei da Irlanda, sem prejuízo dos direitos de consumidor que você
-        tenha no país onde mora.
+        We may update these terms; the date at the top shows the latest version,
+        and material changes are announced inside the app. These terms are
+        governed by the law of Ireland, without prejudice to the consumer rights
+        you may have in the country where you live.
       </p>
 
-      <h3>9. Regras complementares</h3>
+      <h3>9. Supplementary rules</h3>
       <p>
-        A <a href="/comunidade">Política da Comunidade</a>, a{' '}
-        <a href="/seguranca">Orientação de Segurança</a> e a{' '}
-        <a href="/moderacao-e-denuncias">Política de Moderação</a> fazem parte
-        destas regras. Em caso de conflito, estes Termos prevalecem.
+        The <a href="/comunidade">Community Policy</a>, the{' '}
+        <a href="/seguranca">Safety Guidance</a> and the{' '}
+        <a href="/moderacao-e-denuncias">Moderation Policy</a> form part of
+        these rules. In case of conflict, these Terms prevail.
       </p>
     </PaginaLegal>
   );
