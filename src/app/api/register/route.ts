@@ -21,19 +21,6 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  // Anti-abuso: no máximo 3 cadastros por IP por hora. Segura criação em massa
-  // de contas e disparo de e-mails de confirmação.
-  const { limitado } = await registrarEChecar('register', ipDaRequisicao(req), {
-    max: 3,
-    janelaMs: 60 * 60 * 1000,
-  });
-  if (limitado) {
-    return NextResponse.json(
-      { erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' },
-      { status: 429 },
-    );
-  }
-
   let corpo: unknown;
   try {
     corpo = await req.json();
@@ -46,6 +33,22 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { erro: 'Confira os dados. A senha precisa ter ao menos 8 caracteres.' },
       { status: 400 },
+    );
+  }
+
+  // Anti-abuso: no máximo 3 cadastros VÁLIDOS por IP por hora. A checagem vem
+  // DEPOIS da validação de propósito — erro de preenchimento (senha curta,
+  // telefone faltando) não deve gastar o limite de quem só errou o formulário.
+  // O que se protege é o disparo em massa de e-mails de confirmação, e esse só
+  // acontece com dados válidos.
+  const { limitado } = await registrarEChecar('register', ipDaRequisicao(req), {
+    max: 3,
+    janelaMs: 60 * 60 * 1000,
+  });
+  if (limitado) {
+    return NextResponse.json(
+      { erro: 'Muitas tentativas. Espere alguns minutos e tente de novo.' },
+      { status: 429 },
     );
   }
 
