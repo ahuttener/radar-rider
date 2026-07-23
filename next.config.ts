@@ -3,6 +3,9 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  // Não anuncia a stack no header X-Powered-By: dá menos pista a quem sonda.
+  poweredByHeader: false,
+
   // Fixa a raiz no próprio projeto. Sem isto, havendo um package-lock.json em
   // alguma pasta acima, o Next elege aquela pasta como raiz do workspace e
   // passa a resolver arquivo do lugar errado.

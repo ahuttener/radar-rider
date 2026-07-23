@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 type Report = {
   id: string;
@@ -21,6 +22,8 @@ type Report = {
 };
 
 export default function Moderacao() {
+  const { data: session, status } = useSession();
+  const staff = session?.user?.role === 'admin' || session?.user?.role === 'moderator';
   const [reports, setReports] = useState<Report[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -39,7 +42,14 @@ export default function Moderacao() {
     } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  // Só busca a fila quando a sessão já resolveu E o usuário é staff. Sem isto,
+  // um visitante disparava um fetch que voltava 401 e sujava o console, além de
+  // ver a casca da tela de moderação.
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (staff) load();
+    else setLoading(false);
+  }, [status, staff, load]);
 
   async function act(id: string, action: 'review' | 'dismiss' | 'hide' | 'remove' | 'restore') {
     setBusy(id);
@@ -91,10 +101,17 @@ export default function Moderacao() {
       </header>
       <div className="pad">
         <h2 className="title">Fila de denúncias</h2>
-        {loading && <div className="card muted">Carregando…</div>}
-        {error && <div className="card data-empty-error" role="alert"><b>{error}</b></div>}
-        {!loading && !error && reports.length === 0 && <div className="card muted">Nenhuma denúncia pendente.</div>}
-        {reports.map((report) => {
+        {status === 'loading' && <div className="card muted">Carregando…</div>}
+        {status !== 'loading' && !staff && (
+          <div className="card muted">
+            <b>Acesso restrito.</b> Esta área é só para a moderação.{' '}
+            <Link href="/">Voltar ao Radar Rider</Link>.
+          </div>
+        )}
+        {staff && loading && <div className="card muted">Carregando…</div>}
+        {staff && error && <div className="card data-empty-error" role="alert"><b>{error}</b></div>}
+        {staff && !loading && !error && reports.length === 0 && <div className="card muted">Nenhuma denúncia pendente.</div>}
+        {staff && reports.map((report) => {
           const foraDoAr = report.alert.status === 'hidden' || report.alert.status === 'removed';
           return (
             <article className="card moderation-card" key={report.id}>
