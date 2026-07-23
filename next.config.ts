@@ -15,6 +15,28 @@ const nextConfig: NextConfig = {
   // metade, sem BUILD_ID. Com um worker só, a compilação conclui.
   experimental: { cpus: 1, workerThreads: false },
 
+  // Domínio canônico: tudo em www.radarrider.com.
+  //
+  // radarrider.com e www.radarrider.com eram servidos os dois, sem um apontar
+  // para o outro. Isso criava DOIS caches separados no CDN (um servia a versão
+  // nova, o outro uma antiga presa) e, pior, o cookie de sessão fica preso a um
+  // host só — quem entrava por um domínio e era mandado para o outro aparecia
+  // deslogado. O NEXTAUTH_URL já é o www, então o www é o canônico.
+  //
+  // permanent:false (307) de propósito: se algo der errado, um 301/308 fica
+  // gravado no navegador e é penoso de reverter. Dá para promover a permanente
+  // depois de confirmar que está tudo certo.
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'radarrider.com' }],
+        destination: 'https://www.radarrider.com/:path*',
+        permanent: false,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
