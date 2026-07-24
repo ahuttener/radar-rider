@@ -43,6 +43,13 @@ export async function POST(req: Request) {
 
 // Cancela a inscrição (quando a pessoa desliga as notificações).
 export async function DELETE(req: Request) {
+  // Exige sessão: sem isto, apagar por endpoint deixava qualquer um que
+  // soubesse o endpoint de outra pessoa cancelar as notificações dela.
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ erro: 'Entre na sua conta.' }, { status: 401 });
+  }
+
   let body: unknown;
   try { body = await req.json(); } catch {
     return NextResponse.json({ erro: 'Requisição inválida.' }, { status: 400 });
@@ -51,6 +58,7 @@ export async function DELETE(req: Request) {
   if (typeof endpoint !== 'string') {
     return NextResponse.json({ erro: 'Endpoint ausente.' }, { status: 400 });
   }
-  await prisma.pushSubscription.deleteMany({ where: { endpoint } });
+  // O userId no filtro garante que só se apaga a inscrição do próprio dono.
+  await prisma.pushSubscription.deleteMany({ where: { endpoint, userId: session.user.id } });
   return NextResponse.json({ ok: true });
 }
