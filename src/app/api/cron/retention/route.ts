@@ -25,7 +25,17 @@ async function rodarFaxina(req: Request) {
   if (!segredo) {
     return NextResponse.json({ erro: 'CRON_SECRET não configurado.' }, { status: 503 });
   }
-  if (req.headers.get('authorization') !== `Bearer ${segredo}`) {
+  // Aceita o segredo de DUAS formas, para caber em qualquer serviço de cron:
+  //   1. Header  Authorization: Bearer <segredo>   (o jeito "certo")
+  //   2. Query   ?key=<segredo>                     (para serviços onde
+  //      configurar header é trabalhoso/erra fácil, ex.: cron-job.org — lá o
+  //      campo de "autenticação HTTP" é Basic, não Bearer, e confunde).
+  // O segredo na URL vaza para o log de acesso, mas esta rota só faz faxina de
+  // retenção (nada destrutivo além do que o cron já faria), então o risco é
+  // baixo e vale a robustez de não depender de header.
+  const viaHeader = req.headers.get('authorization') === `Bearer ${segredo}`;
+  const viaQuery = new URL(req.url).searchParams.get('key') === segredo;
+  if (!viaHeader && !viaQuery) {
     return NextResponse.json({ erro: 'Não autorizado.' }, { status: 401 });
   }
 
