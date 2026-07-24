@@ -7,6 +7,20 @@ Severidade: P0 (crítico) · P1 (bloqueador) · P2 (defeito maior) · P3 (menor)
 
 ---
 
+## STATUS PÓS-CORREÇÃO (2026-07-24)
+
+| ID | Severidade | Resolução |
+|---|---|---|
+| **F-01** CSP | P2 | ✅ **CORRIGIDO** — CSP forte reasseverada via `public_html/.htaccess` (`Header always set`); verificada em produção e sobrevive a deploy git. Backup em `.htaccess.bak-audit-2026-07-24`. Ressalva: uma re-provisão pelo painel pode reverter → reaplicar o bloco. |
+| **F-04** IDOR push DELETE | P3 | ✅ **CORRIGIDO** (commit `06827b2`) — exige sessão + filtra por `userId`; `DELETE` sem sessão → 401 (verificado). |
+| **F-08** sitemap | P4 | ✅ **CORRIGIDO** (`06827b2`) — `app/sitemap.ts`, `/sitemap.xml` 200 com 30 URLs. |
+| **F-02/F-07** header do SW | P3/P4 | ⚠️ **MITIGADO** — `Cache-Control` não é aplicável via `.htaccess` ao arquivo servido pelo app Node; permanece coberto por `updateViaCache:'none'` + auto-reload. |
+| **F-03** cache CDN | P4 | 🔧 aberto — recomendação de purga pós-deploy (processo). |
+| **F-05** X-Forwarded-For | P4 | 🔧 aberto — **deliberadamente não alterado** (mudar sem conhecer o proxy pode quebrar o rate limiting). |
+| **F-06** senha vazada | P4 | 🔧 aberto — melhoria opcional (HIBP). |
+
+---
+
 ## F-01 — CSP forte não chega ao navegador em produção
 - **Severidade:** P2 · **Componente:** headers de segurança / camada Hostinger-LiteSpeed · **Status:** CONFIRMED
 - **Evidência:** `curl -D-` em `/`, `/entrar` e `/api/health` (dinâmica, `no-store`) retorna **apenas** `content-security-policy: upgrade-insecure-requests`. O `next.config.ts` define uma CSP completa (`default-src 'self'`, `frame-ancestors 'none'`, `object-src 'none'`, `script-src 'self' 'unsafe-inline'`, etc.). Os demais headers do config (`x-content-type-options`, `referrer-policy`, `x-frame-options`, `permissions-policy`) **aparecem** — só a CSP é substituída. `public_html/.htaccess` **não** contém diretiva de CSP → a substituição vem do vhost LiteSpeed/painel Hostinger ("forçar HTTPS").

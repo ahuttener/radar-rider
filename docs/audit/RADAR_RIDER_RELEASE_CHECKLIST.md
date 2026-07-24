@@ -16,15 +16,16 @@ Commit `5eaffa1` · 2026-07-24 · Status: **PASS** / **FAIL** / **BLOCKED** / **
 - [x] `GET /` 200, `/api/health` `database:connected` — **PASS**
 - [x] Redirect apex→www (307) e http→https (301) — **PASS**
 - [x] Source maps não expostos (404) — **PASS**
-- [ ] CSP forte aplicada — **FAIL** (F-01: só `upgrade-insecure-requests`)
+- [x] CSP forte aplicada — **PASS** (F-01 corrigido via `.htaccess`; verificado em produção, sobrevive a deploy git)
 - [x] HSTS / X-Frame-Options / X-Content-Type-Options / Referrer-Policy / Permissions-Policy — **PASS**
-- [ ] `Cache-Control` do service worker — **FAIL** (F-02; mitigado por `updateViaCache:'none'`)
+- [ ] `Cache-Control` do service worker — **PARTIAL** (F-02; header não aplicável ao arquivo proxied, mas mitigado por `updateViaCache:'none'` + auto-reload)
 - [ ] Cache do CDN purgado pós-deploy — **PARTIAL** (F-03; `s-maxage=60` aplicado, purga manual recomendada)
 - [ ] Rollback automatizado — **FAIL** (recuperação é manual por SSH; documentada)
 
 ## Banco de dados
 - [x] Schema válido, índices e unicidades presentes — **PASS**
 - [x] Sem vazamento de coordenada exata na API pública — **PASS**
+- [x] `sitemap.xml` — **PASS** (F-08 corrigido: `app/sitemap.ts`, 30 URLs públicas, 200 em produção)
 - [ ] `prisma migrate status` contra produção — **NOT VERIFIED** (comando read-only fornecido)
 - [ ] Backup diário confirmado + restauração testada — **PARTIAL** (backup indicado em sessão anterior; restauração não testada)
 
@@ -39,7 +40,7 @@ Commit `5eaffa1` · 2026-07-24 · Status: **PASS** / **FAIL** / **BLOCKED** / **
 ## Autorização
 - [x] Todas as rotas mutáveis checam sessão server-side — **PASS**
 - [x] Moderação exige staff (403), anti-autoescalada — **PASS**
-- [ ] `DELETE /api/push/subscribe` valida dono — **FAIL** (F-04, P3)
+- [x] `DELETE /api/push/subscribe` valida dono — **PASS** (F-04 corrigido; sem sessão → 401, verificado em produção)
 
 ## PWA & notificações
 - [x] `manifest.json` 200 e ícones presentes — **PASS**
