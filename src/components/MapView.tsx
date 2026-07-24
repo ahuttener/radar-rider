@@ -21,6 +21,12 @@ export default function MapView({ alerts, me, heat, onPick, focus }: Props) {
   const markers = useRef<Map<string, Marker>>(new Map());
   const heatLayer = useRef<Layer | null>(null);
   const onPickRef = useRef(onPick);
+  // Enquadramento automático: o mapa abre em Dublin, mas os alertas podem estar
+  // longe (ex.: Newbridge, ~30 km). Sem localização da pessoa, o mapa ficava em
+  // Dublin e os pinos caíam fora da tela — parecia que não havia alerta nenhum.
+  // Faz o enquadramento UMA vez, e só enquanto não há posição do rider (que tem
+  // prioridade: se a localização chega, é nela que o mapa centraliza).
+  const enquadrouRef = useRef(false);
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -110,6 +116,23 @@ export default function MapView({ alerts, me, heat, onPick, focus }: Props) {
       cancelado = true;
     };
   }, [alerts]);
+
+  // Enquadrar o mapa nos alertas quando não há posição do rider, para que os
+  // pinos nunca fiquem fora da tela. Roda só uma vez.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || enquadrouRef.current) return;
+    // A localização do rider tem prioridade: se existe, o efeito de posição
+    // centraliza nela — aqui só marcamos como resolvido para não brigar.
+    if (me) { enquadrouRef.current = true; return; }
+    if (alerts.length === 0) return;
+
+    const pontos = alerts.map((a) => [a.latitudePublic, a.longitudePublic] as [number, number]);
+    // maxZoom evita zoom absurdo quando todos os alertas estão no mesmo ponto
+    // (as coordenadas públicas são arredondadas, então isso é comum).
+    m.fitBounds(pontos, { maxZoom: 14, padding: [60, 60] });
+    enquadrouRef.current = true;
+  }, [alerts, me]);
 
   // Camada de calor, carregada só quando alguém liga o botão
   useEffect(() => {
