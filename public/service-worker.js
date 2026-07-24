@@ -88,19 +88,32 @@ self.addEventListener('push', (e) => {
     // Vibra no celular; um alerta de segurança merece ser sentido.
     vibrate: [80, 40, 80],
   };
-  e.waitUntil(self.registration.showNotification(titulo, opcoes));
+  e.waitUntil(
+    (async () => {
+      await self.registration.showNotification(titulo, opcoes);
+      // Selo no ÍCONE do app (Badging API). Aparece um marcador no ícone do
+      // Radar Rider na tela do celular, mesmo com o app fechado — o aviso de
+      // "tem alerta novo" que a pessoa vê sem abrir nada. Só funciona no app
+      // instalado (adicionado à tela de início); em navegador comum é no-op.
+      // Sem contador: o SW não sabe quantos há por ler, então marca um selo
+      // simples. Some quando a pessoa abre o app (ver client e notificationclick).
+      try { await self.navigator.setAppBadge(); } catch { /* API ausente: ignora */ }
+    })(),
+  );
 });
 
-// Tocar na notificação abre o app (ou foca a aba já aberta).
+// Tocar na notificação abre o app (ou foca a aba já aberta) e limpa o selo.
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   const destino = (e.notification.data && e.notification.data.url) || '/';
   e.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientes) => {
+    (async () => {
+      try { await self.navigator.clearAppBadge(); } catch { /* ignora */ }
+      const clientes = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       for (const c of clientes) {
         if ('focus' in c) return c.focus();
       }
       return self.clients.openWindow(destino);
-    }),
+    })(),
   );
 });

@@ -81,9 +81,21 @@ export default function MapView({ alerts, me, heat, onPick, focus }: Props) {
       for (const a of alerts) {
         if (markers.current.has(a.id)) continue;
         const c = catById(a.category);
-        const marker = L.marker([a.latitudePublic, a.longitudePublic])
+        // Pino próprio em vez do marcador padrão do Leaflet: o PNG padrão não
+        // resolve no bundle do Next e virava um quadrado de imagem quebrada.
+        // Este é um círculo colorido pela gravidade com o emoji da categoria —
+        // já diz do que se trata à primeira vista e é grande o bastante para
+        // tocar no celular (onde não há hover para mostrar o tooltip).
+        const cor = { alta: '#ff4d57', media: '#ffd21a', baixa: '#23f36b' }[c.severity];
+        const icone = L.divIcon({
+          className: 'rr-pin-wrap',
+          html: `<div class="rr-pin${a.isOngoing ? ' rr-pin-live' : ''}" style="--rr:${cor}">${c.icon}</div>`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        });
+        const marker = L.marker([a.latitudePublic, a.longitudePublic], { icon: icone })
           .addTo(m)
-          .bindTooltip(`${c.icon} ${c.label}`)
+          .bindTooltip(`${c.icon} ${c.label} — toque para ver`)
           .on('click', () => onPickRef.current(a.id));
         markers.current.set(a.id, marker);
       }

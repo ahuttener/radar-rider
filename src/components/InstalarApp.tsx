@@ -122,6 +122,18 @@ export function RegistrarServiceWorker() {
     navigator.serviceWorker.register('/service-worker.js').catch((e) => {
       console.warn('Service worker não registrou:', e);
     });
+
+    // Ao abrir (ou voltar para) o app, o selo do ícone perdeu o sentido: a
+    // pessoa já está aqui vendo os alertas. Limpa o marcador. O SW o coloca
+    // quando chega um push com o app fechado; aqui ele some quando ela chega.
+    const limparSelo = () => {
+      if (document.visibilityState === 'visible' && 'clearAppBadge' in navigator) {
+        navigator.clearAppBadge().catch(() => {});
+      }
+    };
+    limparSelo();
+    document.addEventListener('visibilitychange', limparSelo);
+    return () => document.removeEventListener('visibilitychange', limparSelo);
   }, []);
   return null;
 }
