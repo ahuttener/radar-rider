@@ -119,9 +119,28 @@ export function ModalInstalar({ prompt, aoFechar }: {
 export function RegistrarServiceWorker() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('/service-worker.js').catch((e) => {
-      console.warn('Service worker não registrou:', e);
-    });
+
+    // Auto-atualização. Quando uma versão nova é publicada, o service worker
+    // novo assume (skipWaiting + clients.claim) e dispara 'controllerchange';
+    // aí recarregamos a tela UMA vez para trocar o código velho pelo novo, sem
+    // a pessoa precisar limpar cache na mão. Só recarrega se JÁ existia um
+    // controller — senão a primeira visita se recarregaria à toa.
+    let recarregando = false;
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (recarregando) return;
+        recarregando = true;
+        window.location.reload();
+      });
+    }
+
+    // updateViaCache:'none' força revalidar o proprio service-worker.js pela
+    // rede (sem isso o navegador pode servir um SW velho do cache HTTP por
+    // horas). reg.update() checa por versao nova ja na abertura.
+    navigator.serviceWorker
+      .register('/service-worker.js', { updateViaCache: 'none' })
+      .then((reg) => reg.update().catch(() => {}))
+      .catch((e) => console.warn('Service worker não registrou:', e));
 
     // Ao abrir (ou voltar para) o app, o selo do ícone perdeu o sentido: a
     // pessoa já está aqui vendo os alertas. Limpa o marcador. O SW o coloca

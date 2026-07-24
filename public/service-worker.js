@@ -15,7 +15,7 @@
 
 // A versão sobe sempre que ESTATICOS muda: é o que faz o navegador descartar o
 // cache antigo. Sem isso, o manifesto velho (com o ícone errado) sobreviveria.
-const CACHE = 'radar-rider-v6';
+const CACHE = 'radar-rider-v7';
 
 // Só o que não muda de significado: a logo, o manifesto e o sino da notificação.
 const ESTATICOS = [
