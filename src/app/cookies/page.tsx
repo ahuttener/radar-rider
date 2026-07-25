@@ -1,97 +1,113 @@
 import type { Metadata } from 'next';
 import { PaginaLegal } from '@/components/PaginaLegal';
+import { PRIVACY_EMAIL, LEGAL_UPDATED } from '@/lib/legal';
+
+// Versão PRINCIPAL (português) da política de cookies. A equivalente em inglês
+// está em /cookie-policy. As duas dizem a mesma coisa.
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy — Radar Rider',
-  description: 'Which cookies Radar Rider uses. We do not use tracking or advertising.',
+  title: 'Política de Cookies — Radar Rider',
+  description: 'Quais cookies o Radar Rider usa. Não usamos rastreamento nem publicidade.',
+  alternates: {
+    canonical: '/cookies',
+    languages: { 'pt-BR': '/cookies', en: '/cookie-policy' },
+  },
 };
 
 export default function Cookies() {
   return (
-    <PaginaLegal titulo="Cookie Policy" atualizadoEm="July 23, 2026" lang="en">
+    <PaginaLegal
+      titulo="Política de Cookies"
+      atualizadoEm={LEGAL_UPDATED}
+      versaoEm="/cookie-policy"
+    >
       <div className="privacy-box ok" style={{ display: 'block' }}>
         <p>
-          <b>Radar Rider uses no tracking, advertising or analytics cookies.</b>{' '}
-          Only the ones that make the app work. There is nothing here for you to
-          switch off, which is why we do not bury you under a panel of choices.
+          <b>O Radar Rider não usa nenhum cookie de rastreamento, publicidade ou
+          analytics.</b>{' '}
+          Só os que fazem o app funcionar. Não há nada aqui para você desligar,
+          e é por isso que não enterramos você num painel de escolhas.
         </p>
       </div>
 
-      <h3>What a cookie is</h3>
+      <h3>O que é um cookie</h3>
       <p>
-        A small file the site stores in your browser to remember something
-        between one page and the next — for example, that you have already
-        signed in to your account.
+        Um arquivinho que o site guarda no seu navegador para lembrar de algo de
+        uma página para a outra — por exemplo, que você já entrou na sua conta.
       </p>
 
-      <h3>The ones we use</h3>
+      <h3>Os que usamos</h3>
 
       <table className="legal-table">
         <thead>
-          <tr><th>Name</th><th>What it does</th><th>Lasts</th></tr>
+          <tr><th>Nome</th><th>Para que serve</th><th>Dura</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><code>__Secure-next-auth.session-token</code></td>
-            <td>Keeps you signed in to your account. Without it, you would have
-                to sign in again on every page.</td>
-            <td>30 days</td>
+            <td>Mantém você conectado à sua conta. Sem ele, você teria que
+                entrar de novo a cada página.</td>
+            <td>30 dias</td>
           </tr>
           <tr>
             <td><code>__Host-next-auth.csrf-token</code></td>
-            <td>Security: stops another site from submitting forms in your
-                name.</td>
-            <td>Session</td>
+            <td>Segurança: impede que outro site envie formulários em seu
+                nome.</td>
+            <td>Sessão</td>
           </tr>
           <tr>
             <td><code>__Secure-next-auth.callback-url</code></td>
-            <td>Remembers which screen to take you to after sign-in.</td>
-            <td>Session</td>
+            <td>Lembra para qual tela levar você depois de entrar.</td>
+            <td>Sessão</td>
           </tr>
         </tbody>
       </table>
 
       <p>
-        Locally or without HTTPS, the <code>__Secure-</code> and{' '}
-        <code>__Host-</code> prefixes may not appear. The purpose is unchanged.
+        Localmente ou sem HTTPS, os prefixos <code>__Secure-</code> e{' '}
+        <code>__Host-</code> podem não aparecer. A finalidade continua a mesma.
       </p>
 
       <p>
-        All of these are <b>strictly necessary</b>. Under the EU ePrivacy rules,
-        cookies of this kind do not require consent — what requires consent are
-        analytics and advertising cookies, which we do not use.
+        Todos eles são <b>estritamente necessários</b>. Pelas regras de
+        ePrivacy da União Europeia — e, no Reino Unido, pelo Privacy and
+        Electronic Communications Regulations (PECR) — cookies desse tipo não
+        exigem consentimento. O que exige consentimento são cookies de analytics
+        e de publicidade, que nós não usamos.
       </p>
 
-      <h3>What we keep on your device outside cookies</h3>
+      <h3>O que guardamos no seu aparelho fora dos cookies</h3>
       <p>
-        The app also uses your browser&apos;s local storage for two of your
-        preferences. They never leave your device and never reach us:
+        O app também usa o armazenamento local do seu navegador para duas
+        preferências suas. Elas nunca saem do seu aparelho e nunca chegam até
+        nós:
       </p>
       <ul>
-        <li><code>rr-aviso-cookies</code> — remembers that you have dismissed the cookie notice.</li>
-        <li><code>rr-pais</code> — remembers whether you were viewing Ireland or the United Kingdom.</li>
+        <li><code>rr-aviso-cookies</code> — lembra que você já fechou o aviso de cookies.</li>
+        <li><code>rr-pais</code> — lembra se você estava vendo a Irlanda ou o Reino Unido.</li>
       </ul>
 
-      <h3>How to delete them</h3>
+      <h3>Como apagar</h3>
       <p>
-        In your browser settings, under &quot;Privacy&quot; or &quot;Browsing
-        data&quot;. If you delete them, you are signed out and the preferences
-        above return to their defaults — nothing else is lost.
+        Nas configurações do seu navegador, em &quot;Privacidade&quot; ou
+        &quot;Dados de navegação&quot;. Se você apagar, sai da conta e as
+        preferências acima voltam ao padrão — nada além disso se perde.
       </p>
 
-      <h3>Support link</h3>
+      <h3>Link de apoio</h3>
       <p>
-        The &quot;Support&quot; button is just a link. Buy Me a Coffee loads no
-        code and stores no cookies inside Radar Rider. When you open the
-        external site, that service&apos;s own choices and cookie policy apply.
+        O botão &quot;Apoiar&quot; é apenas um link. O Buy Me a Coffee não
+        carrega código nem guarda cookies dentro do Radar Rider. Quando você
+        abre o site externo, valem as escolhas e a política de cookies do
+        serviço deles.
       </p>
 
-      <h3>Questions</h3>
+      <h3>Dúvidas</h3>
       <p>
-        Write to{' '}
-        <a href="mailto:contato@radarrider.com">contato@radarrider.com</a>. See
-        also our privacy policy to understand what we do with your account and
-        alert data.
+        Escreva para <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>.
+        Veja também a nossa{' '}
+        <a href="/privacidade">política de privacidade</a> para entender o que
+        fazemos com os dados da sua conta e dos alertas.
       </p>
     </PaginaLegal>
   );

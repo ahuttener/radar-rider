@@ -1,4 +1,8 @@
-export const LEGAL_UPDATED = '22 de julho de 2026';
+// Data única de atualização dos documentos legais, nos dois idiomas. Antes o
+// texto em inglês trazia a data escrita à mão em cada página, o que já tinha
+// dessincronizado de um dia — mudar num lugar não mudava no outro.
+export const LEGAL_UPDATED = '25 de julho de 2026';
+export const LEGAL_UPDATED_EN = 'July 25, 2026';
 export const PRIVACY_EMAIL = process.env.PRIVACY_EMAIL || 'contato@radarrider.com';
 
 export function legalIdentity() {

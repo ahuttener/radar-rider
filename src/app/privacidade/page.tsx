@@ -1,201 +1,235 @@
 import type { Metadata } from 'next';
 import { PaginaLegal } from '@/components/PaginaLegal';
-import { legalIdentity, PRIVACY_EMAIL } from '@/lib/legal';
+import { legalIdentity, PRIVACY_EMAIL, LEGAL_UPDATED } from '@/lib/legal';
+
+// Versão PRINCIPAL (português) da política de privacidade. A equivalente em
+// inglês está em /privacy. As duas dizem a mesma coisa — ao mudar uma, mudar
+// a outra.
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Radar Rider',
-  description: 'What data Radar Rider keeps, why, for how long and how to request deletion.',
+  title: 'Política de Privacidade — Radar Rider',
+  description: 'Que dados o Radar Rider guarda, por quê, por quanto tempo e como pedir a exclusão.',
+  alternates: {
+    canonical: '/privacidade',
+    languages: { 'pt-BR': '/privacidade', en: '/privacy' },
+  },
 };
 
 export default function Privacidade() {
   const identity = legalIdentity();
   return (
-    <PaginaLegal titulo="Privacy Policy" atualizadoEm="July 23, 2026" lang="en">
+    <PaginaLegal
+      titulo="Política de Privacidade"
+      atualizadoEm={LEGAL_UPDATED}
+      versaoEm="/privacy"
+    >
       <div className="privacy-box">
         <span>🛡️</span>
         <p>
-          The one-sentence summary: we keep the minimum needed for the app to
-          work, your alert&apos;s position leaves the map blurred, and{' '}
-          <b>your name never appears next to an alert</b>.
+          O resumo em uma frase: guardamos o mínimo necessário para o app
+          funcionar, a posição do seu alerta sai borrada no mapa e{' '}
+          <b>o seu nome nunca aparece ao lado de um alerta</b>.
         </p>
       </div>
 
-      <h3>Who is responsible</h3>
+      <h3>Quem é o responsável</h3>
       <p>
-        <b>{identity.name}</b> operates Radar Rider as an individual and is the
-        data controller{identity.address ? `, based in ${identity.address}` : ' in Ireland'}.
-        The official contact for any privacy matter — access, correction,
-        deletion or complaints — is{' '}
-        <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>, a monitored
-        mailbox.
+        <b>{identity.name}</b> opera o Radar Rider como pessoa física e é o
+        controlador dos dados{identity.address ? `, com sede em ${identity.address}` : ', estabelecido na Irlanda'}.
+        O contato oficial para qualquer assunto de privacidade — acesso,
+        correção, exclusão ou reclamações — é{' '}
+        <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>, uma caixa de
+        e-mail monitorada.
       </p>
       {identity.incomplete && (
         <div className="privacy-box">
           <span>⚠️</span><p>
-            <b>Pre-launch version:</b> the controller&apos;s legal name still
-            needs to be configured before commercial launch.
+            <b>Versão pré-lançamento:</b> o nome legal do controlador ainda
+            precisa ser configurado antes do lançamento comercial.
           </p>
         </div>
       )}
 
-      <h3>What data we collect</h3>
+      <h3>Que dados coletamos</h3>
       <ul>
         <li>
-          <b>Your account:</b> public name, email, phone number, and your
-          password stored irreversibly as a hash (not even we can read it).
+          <b>Sua conta:</b> nome público, e-mail, telefone e a sua senha
+          guardada de forma irreversível como hash (nem nós conseguimos lê-la).
         </li>
         <li>
-          <b>Your alerts:</b> category, description, when it happened and the
-          location.
+          <b>Seus alertas:</b> categoria, descrição, quando aconteceu e o local.
         </li>
         <li>
-          <b>Your location:</b> read only when you post an alert, confirm someone
-          else&apos;s alert, or tap &quot;My location&quot;. The app does not
-          track you in the background.
+          <b>Sua localização:</b> lida apenas quando você publica um alerta,
+          confirma o alerta de outra pessoa ou toca em &quot;Minha
+          localização&quot;. O app não rastreia você em segundo plano.
         </li>
         <li>
-          <b>Confirmations and reports</b> you make about other people&apos;s
-          alerts.
+          <b>Confirmações e denúncias</b> que você faz sobre alertas de outras
+          pessoas.
         </li>
         <li>
-          <b>Technical data:</b> IP address, browser, device and error or
-          security logs may appear in the hosting provider&apos;s logs.
+          <b>Notificações push:</b> se você ativar, guardamos a inscrição do seu
+          navegador e o país escolhido (Irlanda ou Reino Unido), para avisar
+          sobre alertas naquele país. Você pode desativar quando quiser.
+        </li>
+        <li>
+          <b>Dados técnicos:</b> endereço IP, navegador, aparelho e registros de
+          erro ou segurança podem aparecer nos logs da hospedagem.
         </li>
       </ul>
       <p>
-        Today we do not collect profile photos, uploaded images, contact lists,
-        push notification tokens, advertising data or analytics. If that
-        changes, this policy and the consent choices will be updated first.
+        Hoje não coletamos foto de perfil, imagens enviadas, lista de contatos,
+        dados de publicidade nem analytics. Se isso mudar, esta política e as
+        opções de consentimento serão atualizadas antes.
       </p>
 
-      <h3>What happens with your location</h3>
+      <h3>O que acontece com a sua localização</h3>
       <p>
-        This is the most important part of the app, so it is spelled out. When
-        you post an alert, we store <b>two</b> coordinates:
+        Esta é a parte mais importante do app, então fica explicada em detalhe.
+        Quando você publica um alerta, guardamos <b>duas</b> coordenadas:
       </p>
       <ul>
         <li>
-          The <b>public</b> one, rounded to an area of roughly 100 metres. It is
-          the only one that goes to the map, the app and any other person.
+          A <b>pública</b>, arredondada para uma área de cerca de 100 metros. É
+          a única que vai para o mapa, para o app e para qualquer outra pessoa.
         </li>
         <li>
-          The <b>exact</b> one, which is stored and <b>never leaves the site in
-          a response</b>. It exists only so moderation can act when someone uses
-          the app to stalk or intimidate another person, and to comply with a
-          lawful police request.
+          A <b>exata</b>, que fica armazenada e <b>nunca sai do site em uma
+          resposta</b>. Ela existe só para a moderação poder agir quando alguém
+          usa o app para perseguir ou intimidar outra pessoa, e para atender a
+          um pedido legal da polícia. É apagada 7 dias depois de o alerta sair
+          do mapa.
         </li>
       </ul>
       <p>
-        The blurring is done on our server, not on your phone. That prevents
-        anyone from tampering with the app to post an alert pointing at
-        someone&apos;s front door.
+        O borrão é feito no nosso servidor, e não no seu celular. Isso impede
+        que alguém adultere o app para publicar um alerta apontando para a porta
+        da casa de outra pessoa.
       </p>
 
-      <h3>Why we may use this data</h3>
+      <h3>Por que podemos usar esses dados</h3>
       <ul>
         <li>
-          <b>Performance of a contract:</b> your account and your alerts —
-          without them the app cannot work.
+          <b>Execução de contrato:</b> a sua conta e os seus alertas — sem eles
+          o app não funciona.
         </li>
         <li>
-          <b>Consent:</b> your location. The browser asks first, and you can
-          refuse or revoke it in your device settings at any time. Without it you
-          can read the map, but you cannot post or confirm.
+          <b>Consentimento:</b> a sua localização e as notificações push. O
+          navegador pergunta antes, e você pode recusar ou revogar qualquer uma
+          delas nas configurações do aparelho a qualquer momento. Sem a
+          localização você consegue ler o mapa, mas não publicar nem confirmar.
         </li>
         <li>
-          <b>Legitimate interest:</b> moderation, abuse prevention and posting
-          limits — keeping the map trustworthy for the rider community.
+          <b>Interesse legítimo:</b> moderação, prevenção de abuso e limites de
+          publicação — manter o mapa confiável para a comunidade de entregadores.
         </li>
       </ul>
 
-      <h3>Who we share with</h3>
-      <p>We do not sell your data and we do not run advertising. We use only:</p>
+      <h3>Com quem compartilhamos</h3>
+      <p>Não vendemos os seus dados e não veiculamos publicidade. Usamos apenas:</p>
       <ul>
         <li>
-          <b>Hostinger</b> — hosting of the site, the database and delivery of
-          our emails (account confirmation and password recovery).
+          <b>Hostinger</b> — hospedagem do site, do banco de dados e envio dos
+          nossos e-mails (confirmação de conta e recuperação de senha).
         </li>
         <li>
-          <b>CARTO and OpenStreetMap</b> — the map imagery. When the map loads,
-          your IP address reaches these services, as happens with any image a
-          site loads.
+          <b>CARTO e OpenStreetMap</b> — as imagens do mapa. Quando o mapa
+          carrega, o seu endereço IP chega a esses serviços, como acontece com
+          qualquer imagem que um site carrega.
+        </li>
+        <li>
+          <b>O serviço de push do seu navegador</b> (Google ou Mozilla, por
+          exemplo) — só se você ativar as notificações. É ele que entrega a
+          mensagem no seu aparelho.
         </li>
       </ul>
       <p>
-        We may also disclose data to authorities where we are legally required
-        to do so.
+        Também podemos divulgar dados a autoridades quando somos legalmente
+        obrigados a fazê-lo.
       </p>
       <p>
-        Internal access is limited to the operator and authorised moderators,
-        only when needed for support, security, moderation or compliance with a
-        legal obligation. Providers process data only to deliver their service.
+        O acesso interno é limitado ao operador e a moderadores autorizados,
+        apenas quando necessário para suporte, segurança, moderação ou
+        cumprimento de obrigação legal. Os fornecedores tratam os dados somente
+        para prestar o serviço deles.
       </p>
 
-      <h3>International transfers</h3>
+      <h3>Transferências internacionais</h3>
       <p>
-        Some map or infrastructure providers may process data outside the
-        European Economic Area. Where applicable, we use the contractual
-        safeguards required by the GDPR and assess the provider before use.
+        Alguns fornecedores de mapa ou de infraestrutura podem tratar dados fora
+        do Espaço Económico Europeu ou do Reino Unido. Quando aplicável,
+        apoiamo-nos nas salvaguardas de transferência exigidas pelo RGPD e pelo
+        UK GDPR — como as Cláusulas Contratuais-Tipo, com o adendo do Reino
+        Unido quando for o caso — e avaliamos o fornecedor antes de usar.
       </p>
 
-      <h3>How long we keep it</h3>
+      <h3>Por quanto tempo guardamos</h3>
       <ul>
         <li>
-          <b>Alerts, confirmations and reports:</b> the alert leaves the map
-          after 1 to 12 hours and the records are deleted within 12 months.
+          <b>Alertas, confirmações e denúncias:</b> o alerta sai do mapa depois
+          de 1 a 12 horas, a localização exata é apagada 7 dias depois, e os
+          registros são excluídos em até 12 meses.
         </li>
         <li>
-          <b>Account:</b> for as long as it exists. On deletion, we immediately
-          remove direct identifiers and keep only anonymised records needed for
-          their retention periods.
+          <b>Conta:</b> enquanto ela existir. Na exclusão, removemos
+          imediatamente os identificadores diretos — inclusive o seu telefone —
+          e mantemos apenas registros anonimizados pelo prazo de retenção deles.
         </li>
         <li>
-          <b>Buy Me a Coffee:</b> only if you tap &quot;Support&quot;. The link
-          opens the external site, subject to its own privacy policy.
+          <b>Buy Me a Coffee:</b> só se você tocar em &quot;Apoiar&quot;. O link
+          abre o site externo, sujeito à política de privacidade dele.
         </li>
-        <li><b>Email tokens:</b> up to 30 days after being used or expired.</li>
-        <li><b>Moderation actions:</b> up to 12 months.</li>
+        <li>
+          <b>Tokens de e-mail:</b> até 30 dias depois de usados ou expirados.
+        </li>
+        <li><b>Ações de moderação:</b> até 12 meses.</li>
       </ul>
 
-      <h3>Your rights</h3>
+      <h3>Os seus direitos</h3>
       <p>
-        Under the GDPR (and the UK GDPR, if you are in the United Kingdom) you
-        may request: access to your data, correction, deletion, portability,
-        restriction of use and objection to processing. Just write to{' '}
-        <a href="mailto:contato@radarrider.com">contato@radarrider.com</a> — we
-        normally reply within one month. You can also use the{' '}
-        <a href="/rgpd">Your GDPR rights</a> page.
+        Pelo RGPD (e pelo UK GDPR, se você estiver no Reino Unido) você pode
+        pedir: acesso aos seus dados, correção, exclusão, portabilidade,
+        limitação do uso e oposição ao tratamento. Quando o tratamento se apoia
+        no consentimento, você pode retirá-lo a qualquer momento, sem afetar o
+        que já foi feito antes. É só escrever para{' '}
+        <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a> — normalmente
+        respondemos em até um mês. Você também pode usar a página{' '}
+        <a href="/rgpd">Os seus direitos RGPD</a>.
       </p>
       <p>
-        If you believe we have handled your data wrongly, you can complain to
-        the authority in your country: the{' '}
+        Se você acredita que tratamos os seus dados de forma errada, pode
+        reclamar à autoridade do seu país: a{' '}
         <a href="https://www.dataprotection.ie" target="_blank" rel="noopener">
           Data Protection Commission
         </a>{' '}
-        in Ireland, or the{' '}
-        <a href="https://ico.org.uk" target="_blank" rel="noopener">ICO</a> in
-        the United Kingdom.
+        na Irlanda, ou o{' '}
+        <a href="https://ico.org.uk" target="_blank" rel="noopener">
+          Information Commissioner&apos;s Office (ICO)
+        </a>{' '}
+        no Reino Unido.
       </p>
 
-      <h3>Minimum age</h3>
+      <h3>Idade mínima</h3>
       <p>
-        Radar Rider is for adults aged 18 and over only. We do not allow
-        accounts for children or teenagers and we remove any account identified
-        as such.
+        O Radar Rider é apenas para adultos com 18 anos ou mais. Não permitimos
+        contas de crianças ou adolescentes e removemos qualquer conta
+        identificada como tal.
       </p>
 
-      <h3>Automated decisions and the obligation to provide data</h3>
+      <h3>Decisões automatizadas e obrigação de fornecer dados</h3>
       <p>
-        We do not make decisions with legal effect solely by algorithm. Email,
-        public name, phone number and password are required to create an
-        account; GPS is optional for viewing the map, but required to post or
-        confirm an alert. You can refuse the GPS permission on your device.
+        Não tomamos decisões com efeito jurídico apenas por algoritmo. E-mail,
+        nome público, telefone e senha são necessários para criar uma conta; o
+        GPS é opcional para ver o mapa, mas necessário para publicar ou
+        confirmar um alerta. Você pode recusar a permissão de GPS no seu
+        aparelho.
       </p>
 
-      <h3>Changes to this policy</h3>
+      <h3>Mudanças nesta política</h3>
       <p>
-        If we change anything material, we update the date at the top of this
-        page and announce it inside the app.
+        Se mudarmos algo relevante, atualizamos a data no topo desta página e
+        avisamos dentro do app.
       </p>
     </PaginaLegal>
   );

@@ -37,7 +37,7 @@ export function DocumentoLegalPage({ documento }: { documento: DocumentoLegal })
       <ul><li><a href="/api/account/export">Baixar uma cópia dos seus dados em JSON</a> (exige login).</li><li><a href="/excluir-conta">Excluir sua conta</a> (exige login e confirmação).</li></ul>
       <h3>Fazer um pedido</h3>
       <p>Escreva para {email} com o direito que deseja exercer. Podemos pedir informação mínima para confirmar sua identidade. Respondemos normalmente em até um mês.</p>
-      <p>Você pode reclamar à <a href="https://www.dataprotection.ie" target="_blank" rel="noopener">Data Protection Commission da Irlanda</a>.</p>
+      <p>Você pode reclamar à autoridade do país onde você está: a <a href="https://www.dataprotection.ie" target="_blank" rel="noopener">Data Protection Commission</a> na Irlanda, ou o <a href="https://ico.org.uk" target="_blank" rel="noopener">Information Commissioner&apos;s Office (ICO)</a> no Reino Unido.</p>
     </PaginaLegal>
   );
 
