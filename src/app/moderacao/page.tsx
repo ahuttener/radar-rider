@@ -28,6 +28,7 @@ export default function Moderacao() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [aviso, setAviso] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,6 +52,16 @@ export default function Moderacao() {
     else setLoading(false);
   }, [status, staff, load]);
 
+  // O que dizer depois de cada ação. A denúncia sai da fila quando é resolvida,
+  // então a frase é a única prova, para quem moderou, de que a coisa aconteceu.
+  const CONFIRMACAO: Record<string, string> = {
+    review: 'Denúncia marcada como "em análise". Ela continua na fila.',
+    dismiss: 'Denúncia descartada: o alerta continua no ar.',
+    hide: 'Alerta ocultado do mapa. A denúncia saiu da fila.',
+    remove: 'Alerta removido do mapa. A denúncia saiu da fila.',
+    restore: 'Alerta restaurado: voltou para o mapa.',
+  };
+
   async function act(id: string, action: 'review' | 'dismiss' | 'hide' | 'remove' | 'restore') {
     setBusy(id);
     try {
@@ -61,6 +72,10 @@ export default function Moderacao() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.erro ?? 'Ação não concluída.');
+      // Feedback explícito. Sem isto, resolver uma denúncia a fazia sumir da
+      // fila sem dizer nada — e quem moderou ficava sem saber se funcionou.
+      setAviso(CONFIRMACAO[action]);
+      setError('');
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ação não concluída.');
@@ -110,6 +125,11 @@ export default function Moderacao() {
         )}
         {staff && loading && <div className="card muted">Carregando…</div>}
         {staff && error && <div className="card data-empty-error" role="alert"><b>{error}</b></div>}
+        {staff && aviso && !error && (
+          <div className="card privacy-box ok" role="status" style={{ display: 'block' }}>
+            <b>✓ {aviso}</b>
+          </div>
+        )}
         {staff && !loading && !error && reports.length === 0 && <div className="card muted">Nenhuma denúncia pendente.</div>}
         {staff && reports.map((report) => {
           const foraDoAr = report.alert.status === 'hidden' || report.alert.status === 'removed';
@@ -119,9 +139,24 @@ export default function Moderacao() {
               <h3>{report.alert.category}</h3>
               <p>{report.alert.description}</p>
               {report.details && <p className="moderation-detail">Denúncia: {report.details}</p>}
-              <p className="muted">Área pública: {report.alert.latitudePublic}, {report.alert.longitudePublic}</p>
+              {/* A área pública era só um par de números na tela — não dava para
+                  saber onde o alerta fica nem julgar se fazia sentido. Agora
+                  abre o local no mapa, que é o que a moderação precisa ver. */}
+              <p className="muted">
+                Área pública:{' '}
+                <a
+                  href={`https://www.openstreetmap.org/?mlat=${report.alert.latitudePublic}&mlon=${report.alert.longitudePublic}#map=15/${report.alert.latitudePublic}/${report.alert.longitudePublic}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="moderation-map-link"
+                >
+                  📍 ver no mapa ({report.alert.latitudePublic}, {report.alert.longitudePublic})
+                </a>
+              </p>
               <div className="moderation-actions">
-                <button disabled={busy === report.id} onClick={() => act(report.id, 'review')}>Analisar</button>
+                {/* "Analisar" parecia abrir o alerta, mas só muda o status para
+                    "em análise". O rótulo agora diz o que o botão faz. */}
+                <button disabled={busy === report.id} onClick={() => act(report.id, 'review')}>Marcar em análise</button>
                 <button disabled={busy === report.id} onClick={() => act(report.id, 'dismiss')}>Descartar</button>
                 {foraDoAr
                   ? <button disabled={busy === report.id} onClick={() => act(report.id, 'restore')}>Restaurar</button>
