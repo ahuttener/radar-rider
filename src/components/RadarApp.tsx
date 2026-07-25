@@ -8,7 +8,7 @@ import {
   CATEGORIES, catById, severityClass, formatDistance, timeAgo,
   type AlertaPublico, type CategoryId,
 } from '@/lib/display';
-import { distanceMetres, CONFIRM_RADIUS_M } from '@/lib/geo';
+import { distanceMetres, CONFIRM_RADIUS_M, countryFromCoords } from '@/lib/geo';
 import { useInstalacao, ModalInstalar, RegistrarServiceWorker } from './InstalarApp';
 import { usePais, SeletorPais, type FiltroPais } from './SeletorPais';
 import { AvisoCookies } from './AvisoCookies';
@@ -373,6 +373,7 @@ export default function RadarApp() {
                 logado={logado}
                 pedirPosicao={localizar}
                 aviso={aviso}
+                paisFiltrado={pais}
                 aoPublicar={() => { carregar(); carregarMeus(); setTela('alerts'); }}
               />
             </div>
@@ -621,11 +622,13 @@ function Detalhe({ a, distancia, onVoltar, onMapa, onConfirmar, onDenunciar }: {
   );
 }
 
-function Reportar({ logado, pedirPosicao, aviso, aoPublicar }: {
+function Reportar({ logado, pedirPosicao, aviso, aoPublicar, paisFiltrado }: {
   logado: boolean;
   pedirPosicao: (silencioso?: boolean) => Promise<Posicao>;
   aviso: (t: string, erro?: boolean) => void;
   aoPublicar: () => void;
+  /** Filtro do mapa, só para avisar quando ele diverge de onde a pessoa está. */
+  paisFiltrado: FiltroPais;
 }) {
   const [passo, setPasso] = useState(1);
   const [categoria, setCategoria] = useState<CategoryId | null>(null);
@@ -636,6 +639,10 @@ function Reportar({ logado, pedirPosicao, aviso, aoPublicar }: {
   const [posicao, setPosicao] = useState<Posicao | null>(null);
   const [declarou, setDeclarou] = useState(false);
   const [enviando, setEnviando] = useState(false);
+
+  // País onde o alerta vai sair, decidido pelo GPS — nunca pela conta.
+  // null quando a posição está fora da Irlanda e do Reino Unido.
+  const paisDaPublicacao = posicao ? countryFromCoords(posicao.lat, posicao.lng) : null;
 
   if (!logado) {
     return (
@@ -734,6 +741,40 @@ function Reportar({ logado, pedirPosicao, aviso, aoPublicar }: {
               </p>
             </div>
           </div>
+
+          {/* Em que país o alerta vai sair.
+              O país NÃO vem da conta: vem do GPS, agora. Quem cruza a fronteira
+              da Irlanda do Norte, se muda ou viaja a trabalho precisa poder
+              avisar sobre o risco da rua em que está — travar pelo país do
+              cadastro calaria a pessoa justamente na hora do perigo.
+              O aviso existe para não haver surpresa: quem está com o mapa
+              filtrado num país e o corpo no outro vê, antes de publicar, onde
+              o alerta realmente vai aparecer. */}
+          {paisDaPublicacao === null && posicao && (
+            <div className="privacy-box grave" style={{ display: 'block', marginTop: 10 }}>
+              <p>
+                <b>⚠️ Você está fora da área do Radar Rider.</b> O app cobre
+                apenas a Irlanda e o Reino Unido, então este alerta não pode ser
+                publicado daqui.
+              </p>
+            </div>
+          )}
+          {paisDaPublicacao && (
+            <div className="privacy-box ok" style={{ display: 'block', marginTop: 10 }}>
+              <p>
+                📍 Este alerta será publicado{' '}
+                <b>{paisDaPublicacao === 'IE' ? 'na Irlanda' : 'no Reino Unido'}</b>
+                , onde você está agora.
+                {paisFiltrado !== 'todos' && paisFiltrado !== paisDaPublicacao && (
+                  <>
+                    {' '}Você está vendo o mapa{' '}
+                    <b>{paisFiltrado === 'IE' ? 'da Irlanda' : 'do Reino Unido'}</b>
+                    , mas o alerta vale para o lugar onde você está.
+                  </>
+                )}
+              </p>
+            </div>
+          )}
 
           <label className="lbl">O que aconteceu</label>
           <textarea maxLength={500} value={descricao} onChange={(e) => setDescricao(e.target.value)}
