@@ -254,6 +254,7 @@ export default function RadarApp() {
                 me={pos}
                 heat={calor}
                 focus={foco}
+                pais={pais}
                 onPick={(id) => { setDetalhe(id); setTela('detail'); }}
               />
               <div className="map-top">

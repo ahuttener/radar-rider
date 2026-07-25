@@ -10,11 +10,22 @@ type Props = {
   heat: boolean;
   onPick: (id: string) => void;
   focus: { lat: number; lng: number } | null;
+  /** Filtro de país em vigor. Trocar de país reenquadra o mapa. */
+  pais?: 'IE' | 'GB' | 'todos';
+};
+
+// Enquadramento de cada país, usado quando a pessoa troca o filtro e não há
+// nenhum alerta no ar naquele país — sem isto o mapa ficaria parado no país
+// anterior, mostrando uma área vazia como se o app estivesse quebrado.
+const VISTA_PAIS: Record<'IE' | 'GB' | 'todos', { centro: [number, number]; zoom: number }> = {
+  IE: { centro: [53.35, -7.95], zoom: 7 },   // ilha da Irlanda
+  GB: { centro: [54.20, -2.60], zoom: 6 },   // Grã-Bretanha
+  todos: { centro: [53.80, -5.50], zoom: 5 }, // os dois juntos
 };
 
 // O Leaflet mexe em window no momento em que é importado, então o import é
 // dentro do efeito. Importar no topo quebra a renderização no servidor.
-export default function MapView({ alerts, me, heat, onPick, focus }: Props) {
+export default function MapView({ alerts, me, heat, onPick, focus, pais = 'todos' }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
   const meMarker = useRef<CircleMarker | null>(null);
@@ -133,6 +144,35 @@ export default function MapView({ alerts, me, heat, onPick, focus }: Props) {
     m.fitBounds(pontos, { maxZoom: 14, padding: [60, 60] });
     enquadrouRef.current = true;
   }, [alerts, me]);
+
+  // Trocar o filtro de país move o mapa para lá.
+  //
+  // Antes o filtro só escondia os pinos do outro país: quem estava em Dublin e
+  // clicava em "UK" continuava vendo a Irlanda, agora sem pino nenhum — parecia
+  // que o botão não fazia nada. Aqui a escolha explícita da pessoa tem
+  // prioridade sobre o centro anterior, inclusive sobre a própria localização,
+  // porque foi ela quem pediu para olhar o outro país.
+  //
+  // Não roda na primeira renderização: no começo quem manda é o GPS (ou o
+  // enquadramento nos alertas), e mexer aqui atropelaria os dois.
+  const paisAnterior = useRef<typeof pais | null>(null);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    if (paisAnterior.current === null) { paisAnterior.current = pais; return; }
+    if (paisAnterior.current === pais) return;
+    paisAnterior.current = pais;
+
+    const pontos = alerts.map((a) => [a.latitudePublic, a.longitudePublic] as [number, number]);
+    if (pontos.length > 0) {
+      m.fitBounds(pontos, { maxZoom: 13, padding: [60, 60] });
+    } else {
+      // Sem alerta no país escolhido, mostra o país inteiro: a pessoa vê que
+      // está no lugar certo e que ali não há nada no ar no momento.
+      const { centro, zoom } = VISTA_PAIS[pais];
+      m.setView(centro, zoom);
+    }
+  }, [pais, alerts]);
 
   // Camada de calor, carregada só quando alguém liga o botão
   useEffect(() => {
