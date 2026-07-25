@@ -77,6 +77,12 @@ export default function Privacidade() {
           <b>Dados técnicos:</b> endereço IP, navegador, aparelho e registros de
           erro ou segurança podem aparecer nos logs da hospedagem.
         </li>
+        <li>
+          <b>Contagem de instalações:</b> quando o app é instalado no aparelho,
+          registramos apenas <b>a data e o país</b> — para sabermos quantas
+          instalações houve. Não guardamos quem instalou, nem identificador do
+          aparelho: não há como ligar esse número a você.
+        </li>
       </ul>
       <p>
         Hoje não coletamos foto de perfil, imagens enviadas, lista de contatos,

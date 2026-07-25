@@ -81,6 +81,12 @@ export default function Privacy() {
           <b>Technical data:</b> IP address, browser, device and error or
           security logs may appear in the hosting provider&apos;s logs.
         </li>
+        <li>
+          <b>Install count:</b> when the app is installed on a device, we record
+          only <b>the date and the country</b>, so we know how many installs
+          there have been. We do not store who installed it, nor any device
+          identifier: there is no way to link that number back to you.
+        </li>
       </ul>
       <p>
         Today we do not collect profile photos, uploaded images, contact lists,

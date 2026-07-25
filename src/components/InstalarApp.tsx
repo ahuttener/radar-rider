@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { paisPeloFusoHorario } from './SeletorPais';
 
 // Instalação do app na tela inicial.
 //
@@ -17,6 +18,37 @@ type PromptEvent = Event & {
   userChoice: Promise<{ outcome: string }>;
 };
 
+// Marca no aparelho que a instalação já foi contada, para o número não subir a
+// cada vez que a pessoa abre o app.
+const CHAVE_CONTADO = 'rr-instalacao-contada';
+
+/**
+ * Avisa o servidor que o app foi instalado. Uma vez por aparelho.
+ *
+ * Manda só o país (palpite pelo fuso, sem pedir GPS) — nada que identifique a
+ * pessoa. É contagem agregada, do tipo "quantas instalações", não registro de
+ * quem instalou.
+ */
+function contarInstalacao() {
+  try {
+    if (localStorage.getItem(CHAVE_CONTADO)) return;
+    localStorage.setItem(CHAVE_CONTADO, '1');
+  } catch {
+    // Sem armazenamento não dá para garantir contagem única: melhor não contar
+    // do que inflar o número a cada abertura.
+    return;
+  }
+  const country = paisPeloFusoHorario();
+  // keepalive: no Android o evento chega junto com a troca de contexto para o
+  // app instalado, e sem isto a requisição morreria no meio.
+  fetch('/api/metrics/install', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ country }),
+    keepalive: true,
+  }).catch(() => { /* métrica não pode atrapalhar a instalação */ });
+}
+
 export function useInstalacao() {
   const [prompt, setPrompt] = useState<PromptEvent | null>(null);
   const [instalado, setInstalado] = useState(false);
@@ -29,6 +61,12 @@ export function useInstalacao() {
       (window.navigator as { standalone?: boolean }).standalone === true;
     setInstalado(jaEhApp);
 
+    // Conta a instalação também quando o app abre já em modo standalone. É o
+    // único caminho no iPhone: o Safari nunca dispara `appinstalled` quando a
+    // pessoa usa "Adicionar à tela de início". Sem isto, todo iOS ficaria fora
+    // da conta. A trava no localStorage garante uma contagem por aparelho.
+    if (jaEhApp) contarInstalacao();
+
     const aoPoderInstalar = (e: Event) => {
       e.preventDefault();
       setPrompt(e as PromptEvent);
@@ -36,6 +74,7 @@ export function useInstalacao() {
     const aoInstalar = () => {
       setInstalado(true);
       setPrompt(null);
+      contarInstalacao();
     };
 
     window.addEventListener('beforeinstallprompt', aoPoderInstalar);
