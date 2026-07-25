@@ -254,6 +254,31 @@ export default function TelaEntrada() {
             </button>
           </div>
 
+          {/* Aviso mostrado ANTES de preencher o cadastro, não depois: quem vai
+              criar conta precisa saber que alerta falso tem consequência antes
+              de assumir o compromisso. Em português e inglês porque o app
+              atende Irlanda e Reino Unido. */}
+          {modo === 'criar' && (
+            <div className="privacy-box" style={{ display: 'block' }}>
+              <p>
+                <b>Alerta falso tem consequência.</b> O Radar Rider é um mural da
+                comunidade: os alertas são publicados por outros entregadores e{' '}
+                <b>não são verificados por nós</b>. Não nos responsabilizamos por
+                alerta falso publicado por um usuário. Quem publica alerta falso
+                perde a conta, e o caso pode ser comunicado às autoridades
+                competentes.
+              </p>
+              <p lang="en" style={{ marginTop: 8 }}>
+                <b>False alerts have consequences.</b> Radar Rider is a community
+                noticeboard: alerts are posted by other riders and{' '}
+                <b>are not verified by us</b>. We take no responsibility for a
+                false alert posted by a user. Anyone posting a false alert loses
+                their account, and the case may be reported to the competent
+                authorities.
+              </p>
+            </div>
+          )}
+
           <form onSubmit={enviar}>
             {modo === 'criar' && (
               <>
