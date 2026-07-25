@@ -247,6 +247,11 @@ textarea{min-height:96px;resize:vertical;font-family:inherit}
 }
 .privacy-box.ok{background:rgba(35,243,107,.06);border-color:rgba(35,243,107,.28);color:var(--muted)}
 .privacy-box.ok b{color:var(--green)}
+/* Vermelho: para o aviso que precisa parar a pessoa antes de ela seguir em
+   frente — hoje, o de alerta falso na criação de conta. Borda mais grossa que
+   as outras caixas de propósito, senão some no meio do formulário. */
+.privacy-box.grave{background:rgba(255,77,87,.13);border:1.5px solid rgba(255,77,87,.55);color:#ffc0c4}
+.privacy-box.grave b{color:#ff8c93}
 .error{color:#ff9aa0;font-size:12.5px;margin-top:8px}
 .success{color:#73f8a0;font-size:12.5px;margin-top:8px}
 

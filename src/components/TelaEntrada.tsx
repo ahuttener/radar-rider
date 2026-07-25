@@ -259,9 +259,9 @@ export default function TelaEntrada() {
               de assumir o compromisso. Em português e inglês porque o app
               atende Irlanda e Reino Unido. */}
           {modo === 'criar' && (
-            <div className="privacy-box" style={{ display: 'block' }}>
+            <div className="privacy-box grave" style={{ display: 'block' }}>
               <p>
-                <b>Alerta falso tem consequência.</b> O Radar Rider é um mural da
+                <b>⚠️ Alerta falso tem consequência.</b> O Radar Rider é um mural da
                 comunidade: os alertas são publicados por outros entregadores e{' '}
                 <b>não são verificados por nós</b>. Não nos responsabilizamos por
                 alerta falso publicado por um usuário. Quem publica alerta falso
@@ -269,7 +269,7 @@ export default function TelaEntrada() {
                 competentes.
               </p>
               <p lang="en" style={{ marginTop: 8 }}>
-                <b>False alerts have consequences.</b> Radar Rider is a community
+                <b>⚠️ False alerts have consequences.</b> Radar Rider is a community
                 noticeboard: alerts are posted by other riders and{' '}
                 <b>are not verified by us</b>. We take no responsibility for a
                 false alert posted by a user. Anyone posting a false alert loses
