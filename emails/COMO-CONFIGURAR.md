@@ -35,7 +35,7 @@ Em **Sites → radarrider.com → Variáveis de ambiente**, cadastre:
 | `SMTP_HOST` | `smtp.hostinger.com` |
 | `SMTP_PORT` | `465` |
 | `SMTP_USER` | `contato@radarrider.com` |
-| `SMTP_PASS` | a senha da caixa |
+| `SMTP_PASS` | a senha real da caixa (nunca o texto de exemplo do `.env.example`) |
 | `MAIL_FROM` | `Radar Rider <contato@radarrider.com>` |
 
 **Reinicie a aplicação depois de cadastrar.** Variável nova só passa a existir
@@ -45,7 +45,9 @@ Se a 465 não conectar, tente `587`. As duas servem: 465 é SSL direto, 587 é
 STARTTLS. O código escolhe o modo sozinho pelo número da porta.
 
 > Sem essas variáveis o app **não quebra** — ele continua criando contas, só não
-> manda o e-mail, e registra `[mailer] SMTP não configurado` no log. Em
+> manda o e-mail, e registra `[mailer] SMTP não configurado` no log. Credencial
+> incorreta ou servidor indisponível também não derrubam a requisição: o log
+> registra somente o código seguro da falha SMTP, sem endereço ou senha. Em
 > desenvolvimento o link de confirmação aparece no console, o que dá para testar
 > o fluxo inteiro sem SMTP nenhum.
 
