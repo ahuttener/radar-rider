@@ -73,6 +73,19 @@ function codigoSeguroDoErro(erro: unknown): string {
   return typeof codigo === 'string' && codigo ? codigo : 'DESCONHECIDO';
 }
 
+/**
+ * Diz se há SMTP configurado, sem abrir conexão.
+ *
+ * Existe para o cadastro poder recusar ANTES de criar a conta: o login exige
+ * e-mail confirmado (`auth.ts`), então cadastrar sem SMTP produz uma conta que
+ * parece ter dado certo e nunca consegue entrar. Recusar antes de consultar o
+ * banco mantém a resposta igual para qualquer endereço, então não revela quem
+ * tem conta — a mesma propriedade que `enviar` preserva ao não propagar falhas.
+ */
+export function smtpConfigurado() {
+  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
 function layout(opts: {
   titulo: string;
   texto: string;

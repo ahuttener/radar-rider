@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { criarToken } from '@/lib/tokens';
-import { enviarConfirmacaoDeConta } from '@/lib/mailer';
+import { enviarConfirmacaoDeConta, smtpConfigurado } from '@/lib/mailer';
 import { registrarEChecar, ipDaRequisicao } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +52,20 @@ export async function POST(req: Request) {
     );
   }
 
+  // Sem SMTP não há como enviar o link de confirmação, e o login recusa quem
+  // não confirmou. Cadastrar nesse estado criava uma conta que responde
+  // "enviamos o link", nunca recebe nada e não consegue entrar — falha
+  // silenciosa, a pior forma de quebrar. Recusar aqui, ANTES de consultar o
+  // banco, também não revela se o endereço já tinha conta.
+  // Em desenvolvimento segue sem SMTP: o `mailer` imprime o link no console.
+  if (process.env.NODE_ENV === 'production' && !smtpConfigurado()) {
+    console.error('[register] SMTP não configurado; cadastro recusado para não criar conta inacessível.');
+    return NextResponse.json(
+      { erro: 'Não conseguimos enviar o e-mail de confirmação agora. Tente de novo em alguns minutos.' },
+      { status: 503 },
+    );
+  }
+
   const email = dados.data.email.trim().toLowerCase();
   const jaExiste = await prisma.user.findUnique({
     where: { email },
@@ -82,6 +96,11 @@ export async function POST(req: Request) {
   if (userId) {
     const token = await criarToken(userId, 'verify_email');
     const site = process.env.NEXTAUTH_URL || 'https://www.radarrider.com';
+
+    // Uma falha aqui NÃO vira erro para quem cadastrou, de propósito: `enviar`
+    // captura, registra só o código do erro e devolve false, para que cadastro
+    // e recuperação respondam igual exista ou não a conta. A pessoa tenta de
+    // novo e cai no caminho de reenvio acima, que gera um token novo.
     await enviarConfirmacaoDeConta(email, `${site}/confirmar?token=${token}`);
   }
 
