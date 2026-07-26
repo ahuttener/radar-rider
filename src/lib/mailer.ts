@@ -55,7 +55,22 @@ function transporter() {
     port,
     secure: port === 465, // 465 é SSL direto; 587 é STARTTLS
     auth: { user, pass },
+    // O envio acontece dentro da requisição de cadastro/recuperação. Limites
+    // explícitos evitam deixar a pessoa esperando até o timeout da hospedagem
+    // quando o servidor SMTP está fora do ar ou bloqueado.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
+}
+
+function codigoSeguroDoErro(erro: unknown): string {
+  if (typeof erro !== 'object' || erro === null || !('code' in erro)) {
+    return 'DESCONHECIDO';
+  }
+
+  const codigo = (erro as { code?: unknown }).code;
+  return typeof codigo === 'string' && codigo ? codigo : 'DESCONHECIDO';
 }
 
 function layout(opts: {
@@ -114,26 +129,34 @@ async function enviar(para: string, assunto: string, html: string, texto: string
     return false;
   }
   const logo = logoAnexo();
-  await tx.sendMail({
-    from: process.env.MAIL_FROM || 'Radar Rider <contato@radarrider.com>',
-    to: para,
-    subject: assunto,
-    text: texto,
-    html,
-    // `cid` casa com o src do <img> no layout. `contentDisposition: inline`
-    // evita que Gmail e Outlook mostrem a logo como anexo pendurado embaixo
-    // da mensagem, além de exibi-la no corpo.
-    attachments: logo
-      ? [{
-          filename: 'radar-rider.png',
-          content: logo,
-          cid: LOGO_CID,
-          contentType: 'image/png',
-          contentDisposition: 'inline' as const,
-        }]
-      : undefined,
-  });
-  return true;
+  try {
+    await tx.sendMail({
+      from: process.env.MAIL_FROM || 'Radar Rider <contato@radarrider.com>',
+      to: para,
+      subject: assunto,
+      text: texto,
+      html,
+      // `cid` casa com o src do <img> no layout. `contentDisposition: inline`
+      // evita que Gmail e Outlook mostrem a logo como anexo pendurado embaixo
+      // da mensagem, além de exibi-la no corpo.
+      attachments: logo
+        ? [{
+            filename: 'radar-rider.png',
+            content: logo,
+            cid: LOGO_CID,
+            contentType: 'image/png',
+            contentDisposition: 'inline' as const,
+          }]
+        : undefined,
+    });
+    return true;
+  } catch (erro) {
+    // Não propaga a falha: cadastro e recuperação usam respostas indistinguíveis
+    // para não revelar quais endereços têm conta. Também não registra mensagem,
+    // destinatário nem credenciais; o código basta para diagnosticar no hPanel.
+    console.error(`[mailer] Falha no envio SMTP (${codigoSeguroDoErro(erro)}).`);
+    return false;
+  }
 }
 
 export function enviarConfirmacaoDeConta(email: string, url: string) {
