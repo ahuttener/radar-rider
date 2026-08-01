@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import 'leaflet/dist/leaflet.css';
 import './globals.css';
+import { ConviteInstalar } from '@/components/InstalarApp';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
@@ -35,6 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR">
       <body>
         <Providers>{children}</Providers>
+        {/* No layout raiz de propósito: o convite tem de alcançar quem chega
+            pela tela de entrada, não só quem já entrou no app. */}
+        <ConviteInstalar />
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { paisPeloFusoHorario } from './SeletorPais';
 
 // Instalação do app na tela inicial.
@@ -150,6 +150,178 @@ export function ModalInstalar({ prompt, aoFechar }: {
 
         <button className="btn ghost" style={{ marginTop: 10 }} onClick={aoFechar}>Fechar</button>
       </div>
+    </div>
+  );
+}
+
+// ===== Convite que sobe sozinho =====
+//
+// O botão "＋ Adicionar à tela inicial" já existia, mas só encontra quem
+// procura. Este cartão sobe por conta própria e é o que faz a pessoa descobrir
+// que o site pode virar aplicativo.
+//
+// Três travas, para convite não virar praga:
+//   - aparece UMA vez por visita (sessionStorage, morre quando a aba fecha)
+//   - quem dispensa não é perguntado de novo por 30 dias (localStorage)
+//   - quem já instalou nunca vê
+//
+// E espera o aviso de cookies sair da tela antes de aparecer. Os dois moram no
+// mesmo canto de baixo; sem essa espera o convite nasce escondido atrás do
+// aviso. Não é hipótese: foi o defeito medido no BRDeals, e atingia justamente
+// quem chegava pela primeira vez — que é o público inteiro deste cartão.
+
+const CHAVE_DISPENSA = 'rr-instalar-dispensado-em';
+/** Marca de visita: vive na sessão, portanto morre quando a aba fecha. */
+const CHAVE_VISITA = 'rr-instalar-visita';
+const DIAS_ATE_PERGUNTAR_DE_NOVO = 30;
+/** Interromper quem acabou de chegar afasta. O convite espera. */
+const ATRASO_MS = 20000;
+
+function jaApareceuNestaVisita() {
+  try {
+    return sessionStorage.getItem(CHAVE_VISITA) === '1';
+  } catch {
+    // Sem armazenamento de sessão, não insistir é melhor do que insistir sempre.
+    return true;
+  }
+}
+
+function marcarVisita() {
+  try {
+    sessionStorage.setItem(CHAVE_VISITA, '1');
+  } catch { /* sem armazenamento: o convite pode voltar noutra página */ }
+}
+
+function foiDispensadoRecentemente() {
+  try {
+    const registro = localStorage.getItem(CHAVE_DISPENSA);
+    if (!registro) return false;
+
+    const quando = Number(registro);
+    if (!Number.isFinite(quando)) return false;
+
+    return Date.now() - quando < DIAS_ATE_PERGUNTAR_DE_NOVO * 24 * 60 * 60 * 1000;
+  } catch {
+    // Armazenamento bloqueado: não insistir é melhor do que insistir sempre.
+    return true;
+  }
+}
+
+/**
+ * O aviso de cookies só é montado no app (`RadarApp`), não na tela de entrada.
+ * Por isso a espera olha a TELA e não o `localStorage`: perguntar pela chave
+ * faria o convite esperar para sempre em quem nunca chegou a ver o aviso.
+ */
+function avisoDeCookiesNaTela() {
+  return document.querySelector('.cookie-bar') !== null;
+}
+
+export function ConviteInstalar() {
+  const { prompt, instalado } = useInstalacao();
+  const [querAparecer, setQuerAparecer] = useState(false);
+  const [caminhoLivre, setCaminhoLivre] = useState(false);
+  const [ios, setIos] = useState(false);
+  /** Arma o temporizador uma única vez, mesmo que o evento chegue depois. */
+  const armado = useRef(false);
+  const temporizador = useRef<number | null>(null);
+
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    // iPad moderno se identifica como Mac; a diferença é o toque na tela.
+    setIos(/iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1));
+  }, []);
+
+  useEffect(() => () => {
+    if (temporizador.current !== null) window.clearTimeout(temporizador.current);
+  }, []);
+
+  useEffect(() => {
+    if (armado.current || instalado) return;
+    // Só arma quando existe caminho real de instalação: no Android quando o
+    // evento chega; no iPhone sempre, porque lá a instalação é manual e o
+    // evento nunca vem.
+    if (!prompt && !ios) return;
+    if (foiDispensadoRecentemente() || jaApareceuNestaVisita()) return;
+
+    armado.current = true;
+    marcarVisita();
+    temporizador.current = window.setTimeout(() => setQuerAparecer(true), ATRASO_MS);
+  }, [prompt, ios, instalado]);
+
+  // Só vigia o aviso de cookies depois que o convite já quer aparecer: assim
+  // nenhum temporizador fica rodando para quem nunca veria o cartão.
+  useEffect(() => {
+    if (!querAparecer || caminhoLivre) return;
+
+    if (!avisoDeCookiesNaTela()) {
+      setCaminhoLivre(true);
+      return;
+    }
+
+    const intervalo = window.setInterval(() => {
+      if (!avisoDeCookiesNaTela()) setCaminhoLivre(true);
+    }, 1500);
+    return () => window.clearInterval(intervalo);
+  }, [querAparecer, caminhoLivre]);
+
+  function dispensar() {
+    try {
+      localStorage.setItem(CHAVE_DISPENSA, String(Date.now()));
+    } catch { /* sem armazenamento: o convite volta na próxima visita */ }
+    setQuerAparecer(false);
+  }
+
+  async function instalarAgora() {
+    if (!prompt) return;
+    try {
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      // Recusou o instalador do navegador: guardar a dispensa, senão o cartão
+      // voltaria na próxima visita para quem acabou de dizer não.
+      if (outcome === 'dismissed') dispensar();
+    } catch {
+      // `prompt()` só pode ser usado uma vez por evento; se o modal manual já
+      // tiver consumido este, não há o que fazer além de fechar o cartão.
+    }
+    setQuerAparecer(false);
+  }
+
+  if (instalado || !querAparecer || !caminhoLivre) return null;
+
+  const titulo = ios ? 'Adicionar à Tela de Início' : 'Instale o Radar Rider no seu celular';
+
+  return (
+    <div className="rr-convite" role="dialog" aria-label={titulo}>
+      <button className="rr-convite-fechar" aria-label="Fechar" onClick={dispensar}>×</button>
+
+      <div className="rr-convite-topo">
+        {/* eslint-disable-next-line @next/next/no-img-element -- imagem estática já dimensionada; o otimizador só acrescentaria uma requisição. */}
+        <img src="/icon-192.png" alt="Radar Rider" width={192} height={192} />
+        <div>
+          <p className="rr-convite-titulo">{titulo}</p>
+          <p className="rr-convite-desc">
+            Abre em tela cheia, sem a barra do navegador, e fica com a logo no meio dos seus apps.
+          </p>
+        </div>
+      </div>
+
+      {prompt ? (
+        <div className="rr-convite-acoes">
+          <button className="btn primary" onClick={instalarAgora}>Baixar aplicativo</button>
+          <button className="btn ghost" onClick={dispensar}>Agora não</button>
+        </div>
+      ) : (
+        <>
+          <div className="privacy-box ok rr-convite-passos">
+            <p>1. Toque em <b>Compartilhar</b> — o quadrado com a seta para cima</p>
+            <p>2. Role e toque em <b>Adicionar à Tela de Início</b></p>
+            <p>3. Confirme em <b>Adicionar</b></p>
+          </div>
+          <div className="rr-convite-acoes">
+            <button className="btn ghost" onClick={dispensar}>Agora não</button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

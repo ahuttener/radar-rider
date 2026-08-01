@@ -654,3 +654,37 @@ textarea{min-height:96px;resize:vertical;font-family:inherit}
   /* Abre espaço para os botões de zoom, que só existem no desktop. */
   .map-top{right:58px}
 }
+
+/* ===== convite de instalação que sobe sozinho ===== */
+.rr-convite{
+  position:fixed;z-index:960;left:10px;right:10px;
+  /* Acima da barra de navegação, pelo mesmo motivo do aviso de cookies:
+     senão o cartão cobre os botões do app. */
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  max-width:420px;margin:0 auto;
+  padding:16px;border-radius:18px;
+  background:var(--panel);border:1px solid var(--line);
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);
+  animation:rr-convite-sobe .28s ease-out both;
+}
+@keyframes rr-convite-sobe{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.rr-convite{animation:none}}
+.rr-convite-topo{display:flex;align-items:center;gap:12px;padding-right:18px}
+.rr-convite-topo img{
+  width:52px;height:52px;flex:0 0 auto;object-fit:contain;
+  border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.35);
+}
+.rr-convite-titulo{font-size:15px;font-weight:800;line-height:1.3}
+.rr-convite-desc{margin-top:4px;font-size:11.5px;line-height:1.5;color:var(--muted)}
+.rr-convite-fechar{
+  position:absolute;top:8px;right:10px;
+  background:none;border:0;color:var(--muted);
+  font-size:20px;line-height:1;padding:4px 6px;cursor:pointer;
+}
+.rr-convite-fechar:hover{color:var(--text)}
+/* A caixa base é flex (ícone ao lado do texto); aqui são passos empilhados. */
+.rr-convite-passos{display:block}
+.rr-convite-passos p+p{margin-top:6px}
+.rr-convite-acoes{display:flex;gap:8px;margin-top:14px}
+.rr-convite-acoes .btn{width:auto;flex:1 1 auto;min-height:46px;font-size:14px}
+.rr-convite-acoes .btn.ghost{flex:0 0 auto;padding:13px 16px}
