@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
 import { contarRecentes, registrar } from './rate-limit';
+import { sessaoRevogada } from './sessao';
 
 // Sessão por JWT, sem tabela de sessão.
 // O app só tem login por e-mail e senha; guardar sessão no banco custaria uma
@@ -80,18 +81,24 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as { role?: string }).role ?? 'user';
       }
       // O papel vive no token por 30 dias. Sem reler, alguém rebaixado de
-      // moderador continuaria moderando até a sessão vencer.
+      // moderador continuaria moderando até a sessão vencer. Pelo mesmo motivo
+      // se releem banimento e suspensão: punir no banco não desfaz um token já
+      // emitido, e este é o único ponto que consegue matá-lo.
       if (trigger === 'update' || (token.uid && !user)) {
         const atual = await prisma.user.findUnique({
           where: { id: token.uid as string },
-          select: { role: true, displayName: true, deletedAt: true, passwordChangedAt: true },
+          select: {
+            role: true,
+            displayName: true,
+            deletedAt: true,
+            passwordChangedAt: true,
+            bannedAt: true,
+            suspendedUntil: true,
+          },
         });
-        if (!atual || atual.deletedAt) return {};
 
-        // Token emitido antes da última troca de senha morre aqui. É o que faz
-        // "redefinir a senha" realmente expulsar quem já estava logado.
         const emitidoEm = typeof token.iat === 'number' ? token.iat * 1000 : 0;
-        if (atual.passwordChangedAt && emitidoEm < atual.passwordChangedAt.getTime()) return {};
+        if (!atual || sessaoRevogada(atual, emitidoEm)) return {};
 
         token.role = atual.role;
         token.name = atual.displayName;
