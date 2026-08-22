@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/banner.jpg" alt="Radar Rider — alertas de risco em tempo real para riders" width="480" />
+</p>
+
 # Radar Rider
 
 PWA de segurança comunitária para entregadores na Irlanda e no Reino Unido.
