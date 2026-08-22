@@ -45,7 +45,7 @@ Commit `5eaffa1` · 2026-07-24 · Node 22 (`/opt/alt/alt-nodejs22` no servidor; 
 - Chave errada → **401**. Sem segredo configurado → **503**. **PASS**.
 
 ## 5. Notificações push (end-to-end)
-- Inscrições no banco: **1** (`ahuttenerir@gmail.com`, país IE, endpoint FCM/Chrome-Android).
+- Inscrições no banco: **1** (`<e-mail do dono>`, país IE, endpoint FCM/Chrome-Android).
 - Disparo de teste via `web-push` + chaves VAPID do `.env` → **entregue e recebido no aparelho do dono** (confirmado). **PASS**.
 
 ## 6. Marcador do mapa (UI, Chrome headless)
