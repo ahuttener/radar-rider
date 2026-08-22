@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/banner.jpg" alt="Radar Rider — alertas de risco em tempo real para riders" width="480" />
+  <img src="./assets/banner.jpg" alt="Radar Rider — alertas de risco em tempo real para riders" width="340" />
 </p>
 
 # Radar Rider
