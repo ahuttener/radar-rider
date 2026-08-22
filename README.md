@@ -22,7 +22,7 @@ it. Location is always disclosed as an approximation.
 |---|---|
 | `src/app/` | routes: pages and `api/` |
 | `src/components/` | `RadarApp` (the app), map, modals, country picker and legal documents |
-| `src/lib/` | `alert-visibility` (privacy), `geo`, `auth`, `mailer`, `prisma` |
+| `src/lib/` | `alert-visibility` (privacy), `geo`, `auth`, `mailer`, `prisma`, `push` |
 | `prisma/` | schema and migrations |
 | `public/` | PWA manifest, service worker and icons |
 | `emails/` | how to wire up SMTP + email previews |
@@ -73,6 +73,11 @@ new variable only exists in the next process.
 Before opening to the public, set `LEGAL_CONTROLLER_NAME` and
 `LEGAL_CONTROLLER_ADDRESS` with the legal name and postal address of the data
 controller. The support button uses `NEXT_PUBLIC_SUPPORT_URL`.
+
+Push notifications need `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and
+`VAPID_SUBJECT`. When an alert is created, `notificarPais()` pushes it to the
+subscribers of that country. Without the keys the feature becomes a no-op and
+nothing else breaks.
 
 When touching `public/service-worker.js`, **bump the cache number**
 (`radar-rider-vX`). Without that, anyone who already installed the app keeps the
@@ -128,8 +133,6 @@ they are known gaps:
 
 - **Image upload and profile pictures.** The current product is deliberately
   text and approximate location only.
-- **Push notifications.** The PWA installs on the phone but does not send push
-  yet.
 - **Analytics and ads.** They are not loaded; if they land, they require a new
   consent flow and updated policies.
 
